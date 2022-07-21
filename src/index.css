@@ -1,0 +1,300 @@
+:root {
+  font-size: calc(min(2.5vmax, (100vmin - 1vh) * .04));
+  --animationSpeed: 0.5s;
+  --truevh: 1px;
+}
+
+@media only screen and (orientation: landscape) {
+  :root {
+    font-size: 3vmin;
+  }
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+#root {
+  height: 100%;
+}
+
+.App {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+}
+
+@media only screen and (orientation: landscape) {
+  .App { flex-direction: row; }
+}
+
+.Scoreboard {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #bbb;
+  border-radius: 0.5rem;
+  margin: 1rem 0;
+  overflow: hidden;
+}
+
+.ScoreboardRow {
+  display: grid;
+  grid-template-columns: 1rem 2rem 2rem 8.5rem 3rem 3rem;
+  height: 2rem;
+  align-items: center;
+  justify-items: center;
+  box-shadow: rgb(0 0 0 / 20%) 0px 0.1rem 0.2rem;
+}
+
+.ScoreboardColor {
+  width: 100%;
+  height: 2rem;
+}
+
+.MyColor {
+  background-color: #f1be2f;
+}
+
+.CompetitorColor {
+  background-color: #024;
+}
+
+.ScoreboardConnected {
+  display: flex;
+}
+.ScoreboardImage {
+  height: 1rem;
+}
+
+.ScoreboardTextbox {
+  border: 1px solid #888;
+  border-radius: 0.25rem;
+  box-shadow: inset 0.1rem 0.1rem 0.1rem #bbb;
+  box-sizing: border-box;
+  font-size: 1rem;
+  padding: 0.1rem 0.25rem;
+  width: 8rem;
+  font-family: inherit;
+}
+
+.ScoreboardName {
+  justify-self: left;
+  padding: 0 0.5rem;
+}
+
+.Footer {
+  display: none;
+  z-index: 10;
+  position: fixed;
+  bottom: 0;
+}
+
+.Username {
+  display: flex;
+  z-index: 10;
+}
+
+.WelcomeArt {
+  height: 10vmin;
+  display: flex;
+  background-color: #369;
+}
+
+.WelcomeCard {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  align-items: center;
+
+  max-height: 60vmin;
+  width: 60vmin;
+  margin: 5vmin;
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
+  border-radius: 1em;
+  transition: height var(--animationSpeed), width var(--animationSpeed);
+  background-color: #fff;
+}
+
+@media only screen and (orientation: landscape) {
+  .WelcomeCard {
+    width: 40vmin;
+    max-width: 60vmin;
+    height: 60vmin;
+    max-height: 60vmin;
+  }
+}
+
+.WelcomeHeader {
+  font-size: 2rem;
+  margin: 0.5rem;
+  text-align: center;
+}
+
+.WelcomeFields {
+  display: grid;
+  grid-template-columns: 50% 6ch;
+  align-items: center;
+  padding: 2vmin;
+  margin: auto;
+  width: 80%;
+}
+
+.WelcomeSpan {
+  justify-self: end;
+}
+
+.WelcomeInput {
+  margin: 1vmin;
+  width: 2.5ch;
+  font-size: 1rem;
+  border: 0;
+  border-bottom: 1px solid #888;
+  border-radius: 0.25em;
+  text-align: center;
+}
+
+.WelcomeButton {
+  margin: 0.5rem;
+  padding: 1rem;
+  font-size: 1rem;
+  border: 1px solid #888;
+  border-radius: 0.5rem;
+  background-color: #369;
+  color: #fff;
+  cursor: pointer;
+}
+
+.BoardWrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: calc(var(--truevh) * 100);
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-items: center;
+  align-items: center;
+}
+
+@media only screen and (orientation: landscape) {
+  .BoardWrapper {
+    flex-direction: row;
+  }
+}
+
+@media only screen and (orientation: landscape) {
+  .BoardCode {
+    align-self: center;
+  }
+}
+
+
+.GameBoard {
+  transition: height var(--animationSpeed), width var(--animationSpeed);
+  border: 1px solid #888;
+  background-color: #888;
+  display: grid;
+  width: 80vmin;
+  height: 80vmin;
+}
+
+.Cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  margin: 1px;
+  border-radius: 0;
+  overflow: hidden;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.Safe {
+  background: radial-gradient(circle, rgba(116,176,226,1) 35%, rgba(69,129,223,1) 100%);
+}
+
+.Unknown {
+  background: radial-gradient(circle, rgba(136,136,246,1) 35%, rgba(89,89,243,1) 100%);
+  color: transparent;
+}
+
+.Cleared {
+  background: linear-gradient(to bottom, #fff, #ddd);
+}
+
+.Flagged {
+  background: radial-gradient(circle, rgba(136,136,246,1) 35%, rgba(89,89,243,1) 100%);
+}
+
+.Exploded {
+  background: linear-gradient(to bottom, #fff, #faa);
+}
+
+.MyTile {
+  box-shadow: inset 0 0 4px 2px #08f;
+}
+
+.CompetitorTile {
+  box-shadow: inset 0 0 4px 2px #750;
+}
+
+.TouchToggle {
+  display: flex;
+  flex-grow: 1;
+  width: calc(100% - 20vmin);
+  border-radius: 5vmin;
+  box-sizing: border-box;
+  margin: 1rem 10vmin;
+  padding: 5vmin;
+  color: #fff;
+  -webkit-user-select: none;  /* Chrome all / Safari all */
+  -moz-user-select: none;     /* Firefox all */
+  -ms-user-select: none;      /* IE 10+ */
+  user-select: none;
+  font-size: 1.5rem;
+  align-items: center;
+  justify-content: center;
+}
+
+@media only screen and (orientation: landscape) {
+  .TouchToggle {
+    width: auto;
+  }
+}
+
+.ToggleFlagging {
+  border: 1px solid #93291E;
+  background: #ED213A;
+  background: linear-gradient(to right, #93291E, #ED213A);
+}
+
+.ToggleClearing {
+  border: 1px solid #2193b0;
+  background: #2193b0;
+  background: linear-gradient(to right, #6dd5ed, #2193b0);
+}
+
+.Shrunk {
+  padding: 0;
+  margin: 0;
+  border: 0;
+  height: 0;
+  width: 0;
+  overflow: hidden;
+}
