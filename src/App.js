@@ -310,7 +310,8 @@ function App() {
       return <div key={`${playerData.playerKey}`} className='ScoreboardRow'><div className={`ScoreboardColor ${myRow ? 'MyColor' : 'CompetitorColor'}`}></div><div className='ScoreboardConnected'>{playerData.active ? "✓" : <img src='spinner.svg' className='ScoreboardImage' alt='⌛'/>}</div><div className='ScoreboardEmoji'>🍣</div><div className={`${myRow ? '' : 'ScoreboardName'}`}>{myRow ? <input type='text' className='ScoreboardTextbox' value={hotUsername} onChange={HandleNameChange}/> : playerData.name}</div><div className='ScoreboardScore'>{CalculateScore(playerData.playerKey)}</div><div className='ScoreboardFlags'>{flagCount}</div></div>
     }
 
-    if(boardData.code) {
+    // Board data when it was mixed with player data display (was confusing)
+    if(boardData.code && false) {
       const remainingFlags = !boardData.cells ? 0 : boardData.cells.reduce((rowsSum, row) => {
         return rowsSum + row.reduce((cellsSum, cell) => {
           return cellsSum + ((cell.state === 'm') ? 1 : 0) - ((cell.state === 'd') ? 1 : 0);
@@ -345,7 +346,7 @@ function App() {
         <CreateBoard state={gameState} GenerateBoard={GenerateBoard} />
         <JoinBoard   state={gameState} JoinGame={JoinGame} />
     </div>
-    <div className="BoardWrapper" style={{display: gameState === "playing" ? "" : "none"}}>
+    <div className="BoardLayer" style={{display: gameState === "playing" ? "" : "none"}}>
     <div className='Header'>
           <div className='Scoreboard'>{CreateScoreboard()}</div>
         </div>

@@ -2,10 +2,10 @@ import './index.css';
 import TouchToggle from './TouchToggle';
 
 function PlayField(props) {
-  const height = props.boardData.cells?.length || 10;
-  const width  = props.boardData.cells?.[0].length || height || 10;
-  const gameboardStyle = { gridTemplateRows: `repeat(${height}, 1fr)`, gridTemplateColumns: `repeat(${width}, 1fr)`};
   const boardData = props.boardData;
+  const height = boardData.cells?.length || 10;
+  const width  = boardData.cells?.[0].length || height || 10;
+  const gameboardStyle = { gridTemplateRows: `repeat(${height}, 1fr)`, gridTemplateColumns: `repeat(${width}, 1fr)`};
   const wrapfield = boardData.wrapfield;
   const myData = props.myData;
 
@@ -184,15 +184,29 @@ function PlayField(props) {
     }
   }
 
+  const remainingFlags = !boardData.cells ? 0 : boardData.cells.reduce((rowsSum, row) => {
+    return rowsSum + row.reduce((cellsSum, cell) => {
+      return cellsSum + ((cell.state === 'm') ? 1 : 0) - ((cell.state === 'd') ? 1 : 0);
+    }, 0);
+  }, 0);
+
+  const remainingSafe = !boardData.cells ? 0 : boardData.cells.reduce((rowsSum, row) => {
+    return rowsSum + row.reduce((cellsSum, cell) => {
+      return cellsSum + ((cell.state === 's') ? 1 : 0) + ((cell.state === 'd') ? 1 : 0);
+    }, 0);
+  }, 0);
+
+  const boardInfo = `Room Code: ${boardData.code} - | - ${remainingSafe === 0 ? "🎉" : `🚩: ${remainingFlags}`}`;
+
   const tiles = [];
-  if(props.boardData && props.boardData.cells) {
+  if(boardData && boardData.cells) {
     for (let y=0; y<height; y++) {
       for(let x=0; x<width; x++) {
-          const tile = props.boardData.cells[y][x];
+          const tile = boardData.cells[y][x];
           const tileOwner = tile.owner;
           const tileState = tile.state;
-          const isSafe = (tileState === "s" && props.boardData.safe?.y === y && props.boardData.safe?.x === x && props.boardData.hint === true);
-          const tileText = (tileState === "d" || tileState === "f") ? "🚩" : (tileState === "m" || tileState === "e") ? "💣" : props.boardData.cells[y][x].neighbours > 0 ? props.boardData.cells[y][x].neighbours : isSafe ? "◎" : "";
+          const isSafe = (tileState === "s" && boardData.safe?.y === y && boardData.safe?.x === x && boardData.hint === true);
+          const tileText = (tileState === "d" || tileState === "f") ? "🚩" : (tileState === "m" || tileState === "e") ? "💣" : boardData.cells[y][x].neighbours > 0 ? boardData.cells[y][x].neighbours : isSafe ? "◎" : "";
           const stateClassName = isSafe ? "Safe" : tileOwner === null ? "Unknown" : (tileState === "d" || tileState === "f") ? "Flagged" : tileState === "c" ? "Cleared" : "Exploded";
           const ownerClassName = tileOwner === null ? "" : tileOwner === myData.playerKey ? "MyTile" : "CompetitorTile";
           const oneTile = <div key={`x${x}y${y}`} x={x} y={y} className={`Cell ${stateClassName} ${ownerClassName}`} onContextMenu={TileContextMenu} onClick={TileClicked} onDoubleClick={TileDoubleClick}>{tileText}</div>
@@ -203,7 +217,10 @@ function PlayField(props) {
 
   return (
       <>
-        <div className='GameBoard' style={gameboardStyle}>{tiles}</div>
+        <div className='BoardWrapper'>
+          <div className='BoardInfo'>{boardInfo}</div>
+          <div className='GameBoard' style={gameboardStyle}>{tiles}</div>
+        </div>
         <TouchToggle />
       </>
   );
