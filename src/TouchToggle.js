@@ -6,7 +6,7 @@ function TouchToggle(props) {
   function ToggleFlagging(){
     setflagging(!flagging);
   }
-  const touchElement = <div id='TouchToggle' className={`TouchToggle ${flagging ? "ToggleFlagging" : "ToggleClearing"}`} onClick={ToggleFlagging} flagging={flagging ? "on" : "off"}>{flagging ? "Flagging" : "Tap to start flagging"}</div>;
+  const touchElement = <div id='TouchToggle' className={`TouchToggle ${flagging ? "ToggleFlagging" : "ToggleClearing"}`} onClick={ToggleFlagging} flagging={flagging ? "on" : "off"}>{flagging ? "Flagging 🚩" : "Clearing ⛏️"}</div>;
   return (touchElement);
 }
 
