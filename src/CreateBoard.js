@@ -2,7 +2,7 @@ import './index.css';
 import {useEffect, useState } from 'react';
 
 function CreateBoard(props) {
-    const [boardSettings, setBoardSettings] = useState({width: 10, height: 10, mines: 15, private: false, active: false, wrapfield: false, hint:false});
+    const [boardSettings, setBoardSettings] = useState({width: 10, height: 10, mines: 15, private: false, active: false, wrapfield: false, hint:true});
 
     // Size of the component, not the gameboard size. CSS won't animate from "auto".
     const [height, setHeight] = useState(null);
@@ -47,7 +47,6 @@ function CreateBoard(props) {
         }
 
         if(updateField.type === "bool") {
-            value = !!value;
             newboardData[field] = value;
             setBoardSettings(newboardData);
             return;
@@ -67,8 +66,8 @@ function CreateBoard(props) {
             <div className='WelcomeFields'>
                 <span className='WelcomeSpan'>Size</span><input type="number" min={4} max={30}                                          style={{width: "6ch"}} className='WelcomeInput' value={boardSettings.height} onChange={e => HandleSizeChange(e.target.value)}/>
                 <span className='WelcomeSpan'>Mines</span><input type="number" min={2} max={maxMines} style={{width: "6ch"}} className='WelcomeInput' value={boardSettings.mines}  onChange={e => HandleMinesChange(e.target.value)}/>
-                <span className='WelcomeSpan'>Wrapfield</span><input type="checkbox" value={boardSettings.wrapfield} onChange={e => HandleWrapfieldChange(e.target.value)}/>
-                <span className='WelcomeSpan'>Hint</span><input type="checkbox" value={boardSettings.hint} onChange={e => HandleHintChange(e.target.value)}/>
+                <span className='WelcomeSpan'>Wrapfield</span><input type="checkbox" value={boardSettings.wrapfield} onChange={e => HandleWrapfieldChange(e.target.checked)}/>
+                <span className='WelcomeSpan'>Hint</span><input type="checkbox" value={boardSettings.hint} onChange={e => HandleHintChange(e.target.checked)}/>
             </div>
             <div className='WelcomeButton' onClick={CreateNewGame}>Create!</div>
         </div>

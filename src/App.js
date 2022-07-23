@@ -3,7 +3,6 @@ import Peer from 'peerjs';
 import GetCookie from './GetCookie';
 
 import './index.css';
-//import WelcomeArt from './WelcomeArt';
 import CreateBoard from './CreateBoard';
 import JoinBoard from './JoinBoard';
 import PlayField from './PlayField';
@@ -15,7 +14,14 @@ function App() {
   const [hotUsername, setHotUsername] = useState(GetCookie("playerName") || "Anonymous");
 
   const [gameState,   setGameState]   = useState("welcome");
-  const [boardData,   setBoardData]   = useState({});
+  const [boardData,   setBoardData]   = useState({
+    cells: null,
+    hint: true,
+    key: null,
+    safe: null,
+    secret: null,
+    wrapfield: false
+  });
   const [myData,      setMyData]      = useState({name: GetCookie("playerName") || "Anonymous", active: false, peerId: null, peer: null});
   const [competitors, setCompetitors] = useState([]);
 
@@ -308,24 +314,6 @@ function App() {
         }, 0);
       }, 0);
       return <div key={`${playerData.playerKey}`} className='ScoreboardRow'><div className={`ScoreboardColor ${myRow ? 'MyColor' : 'CompetitorColor'}`}></div><div className='ScoreboardConnected'>{playerData.active ? "✓" : <img src='spinner.svg' className='ScoreboardImage' alt='⌛'/>}</div><div className='ScoreboardEmoji'>🍣</div><div className={`${myRow ? '' : 'ScoreboardName'}`}>{myRow ? <input type='text' className='ScoreboardTextbox' value={hotUsername} onChange={HandleNameChange}/> : playerData.name}</div><div className='ScoreboardScore'>{CalculateScore(playerData.playerKey)}</div><div className='ScoreboardFlags'>{flagCount}</div></div>
-    }
-
-    // Board data when it was mixed with player data display (was confusing)
-    if(boardData.code && false) {
-      const remainingFlags = !boardData.cells ? 0 : boardData.cells.reduce((rowsSum, row) => {
-        return rowsSum + row.reduce((cellsSum, cell) => {
-          return cellsSum + ((cell.state === 'm') ? 1 : 0) - ((cell.state === 'd') ? 1 : 0);
-        }, 0);
-      }, 0);
-
-      const remainingSafe = !boardData.cells ? 0 : boardData.cells.reduce((rowsSum, row) => {
-        return rowsSum + row.reduce((cellsSum, cell) => {
-          return cellsSum + ((cell.state === 's') ? 1 : 0) + ((cell.state === 'd') ? 1 : 0);
-        }, 0);
-      }, 0);
-
-      const scoreboardRoom = <div key='scoreboardRoom' className='ScoreboardRow'><div className='ScoreboardColor'></div><div className='ScoreboardConnected'></div><div className='ScoreboardEmoji'></div><div className='ScoreboardName'>{boardData.code}</div><div className='ScoreboardScore'>{remainingSafe === 0 ? "🎉" : ""}</div><div className='ScoreboardFlags'>{remainingFlags}</div></div>
-      scoreboard.push(scoreboardRoom);  
     }
 
     const scoreboardHeader = <div key='scoreboardHeader' className='ScoreboardRow'><div className='ScoreboardColor'></div><div className='ScoreboardConnected'><img src='wifi.png' className='ScoreboardImage' alt='📶'/></div><div className='ScoreboardEmoji'></div><div className='ScoreboardName'></div><div className='ScoreboardScore'>🎲</div><div className='ScoreboardFlags'>🚩</div></div>
