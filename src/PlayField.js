@@ -196,7 +196,7 @@ function PlayField(props) {
     }, 0);
   }, 0);
 
-  const boardInfo = `${boardData.code} - ${remainingSafe === 0 ? "🎉" : `🚩: ${remainingFlags}`}`;
+  const boardInfo = <><span>{boardData.code}</span><img className="BoardInfoImage" src="QrIcon.svg"/><span>{remainingSafe === 0 ? "🎉" : `🚩: ${remainingFlags}`}</span></>;
 
   const tiles = [];
   if(boardData && boardData.cells) {
