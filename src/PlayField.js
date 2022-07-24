@@ -196,7 +196,7 @@ function PlayField(props) {
     }, 0);
   }, 0);
 
-  const boardInfo = `Room Code: ${boardData.code} - | - ${remainingSafe === 0 ? "🎉" : `🚩: ${remainingFlags}`}`;
+  const boardInfo = `${boardData.code} - ${remainingSafe === 0 ? "🎉" : `🚩: ${remainingFlags}`}`;
 
   const tiles = [];
   if(boardData && boardData.cells) {

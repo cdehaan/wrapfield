@@ -66,8 +66,8 @@ function CreateBoard(props) {
             <div className='WelcomeFields'>
                 <span className='WelcomeSpan'>Size</span><input type="number" min={4} max={30}                                          style={{width: "6ch"}} className='WelcomeInput' value={boardSettings.height} onChange={e => HandleSizeChange(e.target.value)}/>
                 <span className='WelcomeSpan'>Mines</span><input type="number" min={2} max={maxMines} style={{width: "6ch"}} className='WelcomeInput' value={boardSettings.mines}  onChange={e => HandleMinesChange(e.target.value)}/>
-                <span className='WelcomeSpan'>Wrapfield</span><input type="checkbox" value={boardSettings.wrapfield} onChange={e => HandleWrapfieldChange(e.target.checked)}/>
-                <span className='WelcomeSpan'>Hint</span><input type="checkbox" value={boardSettings.hint} onChange={e => HandleHintChange(e.target.checked)}/>
+                <span className='WelcomeSpan'>Wrapfield</span><label><input type="checkbox" value={boardSettings.wrapfield} onChange={e => HandleWrapfieldChange(e.target.checked)}/><img className='WelcomeCheckbox' alt={boardSettings.wrapfield ? "Wrapfield selected" : "Wrapfield not sellected"} src={boardSettings.wrapfield ? "Checkbox-Checked.svg" : "Checkbox-Unchecked.svg"}/></label>
+                <span className='WelcomeSpan'>Hint</span><label><input type="checkbox" value={boardSettings.hint} onChange={e => HandleHintChange(e.target.checked)}/><img className='WelcomeCheckbox' alt={boardSettings.hint ? "Hint selected" : "Hint not sellected"} src={boardSettings.hint ? "Checkbox-Checked.svg" : "Checkbox-Unchecked.svg"}/></label>
             </div>
             <div className='WelcomeButton' onClick={CreateNewGame}>Create!</div>
         </div>

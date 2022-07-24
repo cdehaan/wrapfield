@@ -29,6 +29,10 @@ body {
   height: 100%;
 }
 
+input[type='checkbox'] {
+  display: none;
+}
+
 .App {
   height: 100%;
   display: flex;
@@ -121,7 +125,6 @@ body {
   overflow: hidden;
   align-items: center;
 
-  max-height: 60vmin;
   width: 60vmin;
   margin: 5vmin;
   box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
@@ -132,10 +135,6 @@ body {
 
 @media only screen and (orientation: landscape) {
   .WelcomeCard {
-    width: 40vmin;
-    max-width: 60vmin;
-    height: 60vmin;
-    max-height: 60vmin;
   }
 }
 
@@ -148,6 +147,7 @@ body {
 .WelcomeFields {
   display: grid;
   grid-template-columns: 50% 6ch;
+  grid-auto-rows: 2rem;
   align-items: center;
   padding: 2vmin;
   margin: auto;
@@ -158,6 +158,10 @@ body {
   justify-self: end;
 }
 
+.WelcomeFields > label {
+  justify-self: center;
+}
+
 .WelcomeInput {
   margin: 1vmin;
   width: 2.5ch;
@@ -166,6 +170,10 @@ body {
   border-bottom: 1px solid #888;
   border-radius: 0.25em;
   text-align: center;
+}
+
+.WelcomeCheckbox {
+  height: 1rem;
 }
 
 .WelcomeButton {
