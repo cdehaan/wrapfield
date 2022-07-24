@@ -133,10 +133,12 @@ input[type='checkbox'] {
   background-color: #fff;
 }
 
+/*
 @media only screen and (orientation: landscape) {
   .WelcomeCard {
   }
 }
+*/
 
 .WelcomeHeader {
   font-size: 2rem;
