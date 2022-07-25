@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { QRCode } from 'react-qrcode-logo';
 import './index.css';
 import TouchToggle from './TouchToggle';
 import Timer from './Timer';
 
 function PlayField(props) {
+  const [displayQR, setDisplayQR] = useState(false);
   const boardData = props.boardData;
   if(!boardData.cells) { return(""); }
   const height = boardData.cells.length || 10;
@@ -189,6 +190,7 @@ function PlayField(props) {
   }
 
   function ToggleDisplayQR() {
+    setDisplayQR(oldStatus => !oldStatus);
   }
 
   const remainingFlags = !boardData.cells ? 0 : boardData.cells.reduce((rowsSum, row) => {
@@ -223,8 +225,8 @@ function PlayField(props) {
   return (
       <>
         <div className='BoardWrapper'>
-          <div className='BoardInfo'><span>{boardData.code}</span><img className="BoardInfoImage" alt='QR Code' src="QrIcon.svg" onClick={ToggleDisplayQR}/><span>{remainingSafe === 0 ? "🎉" : `🚩: ${remainingFlags}`}</span><span><Timer start={boardData.start} end={boardData.end}></Timer></span></div>
-          <div className='GameBoard' style={gameboardStyle}>{tiles}</div>
+          <div className='BoardInfo'>{displayQR ? <span>{boardData.code}</span> : ""}<img className="BoardInfoImage" alt='QR Code' src="QrIcon.svg" onClick={ToggleDisplayQR}/><span>{remainingSafe === 0 ? "🎉" : `🚩: ${remainingFlags}`}</span><span><Timer start={boardData.start} end={boardData.end}></Timer></span></div>
+          <div className='GameBoard' style={gameboardStyle}>{tiles}<div className='QRWrapper'>{displayQR && <QRCode id='QRCode' size={280} value={`https://www.wrapfield.com/?code=${boardData.code}`} />}</div></div>
         </div>
         <TouchToggle />
       </>

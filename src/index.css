@@ -249,6 +249,12 @@ input[type='checkbox'] {
   height: 100%;
 }
 
+/* height and width are set in a module that isn't mine, so I have to use "important" */
+#QRCode {
+  width: 100% !important;
+  height: 100% !important;
+}
+
 .Cell {
   display: flex;
   align-items: center;
