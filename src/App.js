@@ -336,13 +336,15 @@ function App() {
 
   },[myData, hotUsername, nameUpdateTimeout, competitors, boardData]);
 
+  const showCreateGame = new URLSearchParams(window.location.search).get('code') === null;
+
   return (
     <>
     <div className="App">
         <div className='Header'>
           <div className='Scoreboard'>{CreateScoreboard()}</div>
         </div>
-        <CreateBoard state={gameState} GenerateBoard={GenerateBoard} />
+        {showCreateGame && <CreateBoard state={gameState} GenerateBoard={GenerateBoard} />}
         <JoinBoard   state={gameState} JoinGame={JoinGame} />
     </div>
     <div className="BoardLayer" style={{display: gameState === "playing" ? "" : "none"}}>
