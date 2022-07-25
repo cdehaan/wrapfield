@@ -20,7 +20,9 @@ function App() {
     key: null,
     safe: null,
     secret: null,
-    wrapfield: false
+    wrapfield: false,
+    start: null,
+    end: null
   });
   const [myData,      setMyData]      = useState({name: GetCookie("playerName") || "Anonymous", active: false, peerId: null, peer: null});
   const [competitors, setCompetitors] = useState([]);
@@ -148,6 +150,7 @@ function App() {
     }
     setBoardData(oldBoardData => {
       const newBoardData = {...oldBoardData};
+      if(!oldBoardData.start) { newBoardData.start = new Date(); }
 
       localUpdates.forEach(update => {
         if(update.owner !== undefined)  { newBoardData.cells[update.y][update.x].owner  = update.owner;  }

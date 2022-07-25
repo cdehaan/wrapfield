@@ -319,6 +319,11 @@ input[type='checkbox'] {
   background: linear-gradient(to right, #6dd5ed, #2193b0);
 }
 
+.Timer {
+  font-family: 'Courier New', Courier, monospace;
+  margin: 0 1rem;
+}
+
 .Shrunk {
   padding: 0;
   margin: 0;

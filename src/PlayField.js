@@ -1,5 +1,7 @@
+//import { useEffect } from 'react';
 import './index.css';
 import TouchToggle from './TouchToggle';
+import Timer from './Timer';
 
 function PlayField(props) {
   const boardData = props.boardData;
@@ -196,8 +198,6 @@ function PlayField(props) {
     }, 0);
   }, 0);
 
-  const boardInfo = <><span>{boardData.code}</span><img className="BoardInfoImage" src="QrIcon.svg"/><span>{remainingSafe === 0 ? "🎉" : `🚩: ${remainingFlags}`}</span></>;
-
   const tiles = [];
   if(boardData && boardData.cells) {
     for (let y=0; y<height; y++) {
@@ -218,7 +218,7 @@ function PlayField(props) {
   return (
       <>
         <div className='BoardWrapper'>
-          <div className='BoardInfo'>{boardInfo}</div>
+          <div className='BoardInfo'><span>{boardData.code}</span><img className="BoardInfoImage" alt='QR Code' src="QrIcon.svg"/><span>{remainingSafe === 0 ? "🎉" : `🚩: ${remainingFlags}`}</span><span><Timer start={boardData.start} end={boardData.end}></Timer></span></div>
           <div className='GameBoard' style={gameboardStyle}>{tiles}</div>
         </div>
         <TouchToggle />
