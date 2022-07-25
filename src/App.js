@@ -80,7 +80,7 @@ function App() {
     if(typeof(data) !== "object") { console.log("Data: " + data);    return; }
     if(data === null) { console.log("Got an empty data message.");   return; }
 
-    const newCompetitor = data?.competitor;
+    const newCompetitor = data.competitor;
     if(newCompetitor) {
       console.log("New competitor data received");
       setCompetitors(oldCompetitors => {
@@ -99,7 +99,7 @@ function App() {
       });
     }
 
-    const remoteUpdates = data?.updates;
+    const remoteUpdates = data.updates;
     if(remoteUpdates) {
       console.log("Remote updates received");
       setBoardData(oldBoardData => {
@@ -113,7 +113,7 @@ function App() {
       });  
     }
 
-    const board = data?.board;
+    const board = data.board;
     if(board) {
       console.log("Startup board data received");
       setBoardData(oldBoardData => { return {...oldBoardData, ...board}; });
@@ -324,10 +324,10 @@ function App() {
           return cellsSum + ((cell.owner === playerData.playerKey && (cell.state === 'f' || cell.state === 'd')) ? 1 : 0);
         }, 0);
       }, 0);
-      return <div key={`${playerData.playerKey}`} className='ScoreboardRow'><div className={`ScoreboardColor ${myRow ? 'MyColor' : 'CompetitorColor'}`}></div><div className='ScoreboardConnected'>{playerData.active ? "✓" : <img src='spinner.svg' className='ScoreboardImage' alt='⌛'/>}</div><div className='ScoreboardEmoji'>🍣</div><div className={`${myRow ? '' : 'ScoreboardName'}`}>{myRow ? <input type='text' className='ScoreboardTextbox' value={hotUsername} onChange={HandleNameChange}/> : playerData.name}</div><div className='ScoreboardScore'>{CalculateScore(playerData.playerKey)}</div><div className='ScoreboardFlags'>{flagCount}</div></div>
+      return <div key={`${playerData.playerKey}`} className='ScoreboardRow'><div className={`ScoreboardColor ${myRow ? 'MyColor' : 'CompetitorColor'}`}></div><div className='ScoreboardConnected'>{playerData.active ? "✓" : <img src='spinner.svg' className='ScoreboardImage' alt='⌛'/>}</div><div className='ScoreboardEmoji'><span role="img" aria-label="sushi">🍣</span></div><div className={`${myRow ? '' : 'ScoreboardName'}`}>{myRow ? <input type='text' className='ScoreboardTextbox' value={hotUsername} onChange={HandleNameChange}/> : playerData.name}</div><div className='ScoreboardScore'>{CalculateScore(playerData.playerKey)}</div><div className='ScoreboardFlags'>{flagCount}</div></div>
     }
 
-    const scoreboardHeader = <div key='scoreboardHeader' className='ScoreboardRow'><div className='ScoreboardColor'></div><div className='ScoreboardConnected'><img src='wifi.png' className='ScoreboardImage' alt='📶'/></div><div className='ScoreboardEmoji'></div><div className='ScoreboardName'></div><div className='ScoreboardScore'>🎲</div><div className='ScoreboardFlags'>🚩</div></div>
+    const scoreboardHeader = <div key='scoreboardHeader' className='ScoreboardRow'><div className='ScoreboardColor'></div><div className='ScoreboardConnected'><img src='wifi.png' className='ScoreboardImage' alt='📶'/></div><div className='ScoreboardEmoji'></div><div className='ScoreboardName'></div><div className='ScoreboardScore'><span role="img" aria-label="dice">🎲</span></div><div className='ScoreboardFlags'><span role="img" aria-label="flag">🚩</span></div></div>
     scoreboard.push(scoreboardHeader);
     scoreboard.push(CreateScoreboardRow(myData));
     competitors.forEach(competitor => scoreboard.push(CreateScoreboardRow(competitor)));

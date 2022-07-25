@@ -1,12 +1,14 @@
-//import { useEffect } from 'react';
+import React from 'react';
+import { QRCode } from 'react-qrcode-logo';
 import './index.css';
 import TouchToggle from './TouchToggle';
 import Timer from './Timer';
 
 function PlayField(props) {
   const boardData = props.boardData;
-  const height = boardData.cells?.length || 10;
-  const width  = boardData.cells?.[0].length || height || 10;
+  if(!boardData.cells) { return(""); }
+  const height = boardData.cells.length || 10;
+  const width  = boardData.cells[0].length || height || 10;
   const gameboardStyle = { gridTemplateRows: `repeat(${height}, 1fr)`, gridTemplateColumns: `repeat(${width}, 1fr)`};
   const wrapfield = boardData.wrapfield;
   const myData = props.myData;
@@ -186,6 +188,9 @@ function PlayField(props) {
     }
   }
 
+  function ToggleDisplayQR() {
+  }
+
   const remainingFlags = !boardData.cells ? 0 : boardData.cells.reduce((rowsSum, row) => {
     return rowsSum + row.reduce((cellsSum, cell) => {
       return cellsSum + ((cell.state === 'm') ? 1 : 0) - ((cell.state === 'd') ? 1 : 0);
@@ -205,7 +210,7 @@ function PlayField(props) {
           const tile = boardData.cells[y][x];
           const tileOwner = tile.owner;
           const tileState = tile.state;
-          const isSafe = (tileState === "s" && boardData.safe?.y === y && boardData.safe?.x === x && boardData.hint === true);
+          const isSafe = (tileState === "s" && boardData.safe.y === y && boardData.safe.x === x && boardData.hint === true);
           const tileText = (tileState === "d" || tileState === "f") ? "🚩" : (tileState === "m" || tileState === "e") ? "💣" : boardData.cells[y][x].neighbours > 0 ? boardData.cells[y][x].neighbours : isSafe ? "◎" : "";
           const stateClassName = isSafe ? "Safe" : tileOwner === null ? "Unknown" : (tileState === "d" || tileState === "f") ? "Flagged" : tileState === "c" ? "Cleared" : "Exploded";
           const ownerClassName = tileOwner === null ? "" : tileOwner === myData.playerKey ? "MyTile" : "CompetitorTile";
@@ -218,7 +223,7 @@ function PlayField(props) {
   return (
       <>
         <div className='BoardWrapper'>
-          <div className='BoardInfo'><span>{boardData.code}</span><img className="BoardInfoImage" alt='QR Code' src="QrIcon.svg"/><span>{remainingSafe === 0 ? "🎉" : `🚩: ${remainingFlags}`}</span><span><Timer start={boardData.start} end={boardData.end}></Timer></span></div>
+          <div className='BoardInfo'><span>{boardData.code}</span><img className="BoardInfoImage" alt='QR Code' src="QrIcon.svg" onClick={ToggleDisplayQR}/><span>{remainingSafe === 0 ? "🎉" : `🚩: ${remainingFlags}`}</span><span><Timer start={boardData.start} end={boardData.end}></Timer></span></div>
           <div className='GameBoard' style={gameboardStyle}>{tiles}</div>
         </div>
         <TouchToggle />

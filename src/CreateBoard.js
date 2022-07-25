@@ -1,5 +1,5 @@
 import './index.css';
-import {useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 function CreateBoard(props) {
     const [boardSettings, setBoardSettings] = useState({width: 10, height: 10, mines: 15, private: false, active: false, wrapfield: false, hint:true});

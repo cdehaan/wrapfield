@@ -234,12 +234,19 @@ input[type='checkbox'] {
 }
 
 .GameBoard {
+  position: relative;
   transition: height var(--animationSpeed), width var(--animationSpeed);
   border: 1px solid #888;
   background-color: #888;
   display: grid;
   width: 80vmin;
   height: 80vmin;
+}
+
+.QRWrapper {
+  position: absolute;
+  width: 100%;
+  height: 100%;
 }
 
 .Cell {
