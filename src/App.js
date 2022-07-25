@@ -160,6 +160,14 @@ function App() {
 
       localUpdates = [];
 
+      const remainingSafe = !boardData.cells ? 0 : boardData.cells.reduce((rowsSum, row) => {
+        return rowsSum + row.reduce((cellsSum, cell) => {
+          return cellsSum + ((cell.state === 's') ? 1 : 0) + ((cell.state === 'd') ? 1 : 0);
+        }, 0);
+      }, 0);
+      
+      if(remainingSafe === 0 && !oldBoardData.end) { newBoardData.end = new Date(); }
+
       return newBoardData;
     });
   }
