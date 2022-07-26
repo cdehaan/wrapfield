@@ -212,7 +212,7 @@ function PlayField(props) {
           const tile = boardData.cells[y][x];
           const tileOwner = tile.owner;
           const tileState = tile.state;
-          const isSafe = (tileState === "s" && boardData.safe.y === y && boardData.safe.x === x && boardData.hint === true);
+          const isSafe = (boardData.safe && tileState === "s" && boardData.safe.y === y && boardData.safe.x === x && boardData.hint === true);
           const tileText = (tileState === "d" || tileState === "f") ? "🚩" : (tileState === "m" || tileState === "e") ? "💣" : boardData.cells[y][x].neighbours > 0 ? boardData.cells[y][x].neighbours : isSafe ? "◎" : "";
           const stateClassName = isSafe ? "Safe" : tileOwner === null ? "Unknown" : (tileState === "d" || tileState === "f") ? "Flagged" : tileState === "c" ? "Cleared" : "Exploded";
           const ownerClassName = tileOwner === null ? "" : tileOwner === myData.playerKey ? "MyTile" : "CompetitorTile";
