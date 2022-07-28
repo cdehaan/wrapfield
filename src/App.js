@@ -341,7 +341,7 @@ function App() {
   return (
     <>
     <div className="App">
-        <div className='Header'>
+        <div className='Header' style={{display: gameState === "welcome" ? "" : "none"}}>
           <div className='Scoreboard'>{CreateScoreboard()}</div>
         </div>
         {showCreateGame && <CreateBoard state={gameState} GenerateBoard={GenerateBoard} />}

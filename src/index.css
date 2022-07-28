@@ -1,14 +1,17 @@
 :root {
-  font-size: calc(min(2.5vmax, (100vmin - 1vh) * .04));
+  /*font-size: calc(min(2.5vmax, (100vmin - 1vh) * .04));*/
+  font-size: 2.5vh;
   --animationSpeed: 0.5s;
   --truevh: 1px;
 }
 
+/*
 @media only screen and (orientation: landscape) {
   :root {
     font-size: 3vmin;
   }
 }
+*/
 
 body {
   margin: 0;
@@ -23,10 +26,17 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
+  background: #333;
+  display: flex;
+  justify-content: center;
 }
 
 #root {
   height: 100%;
+  max-width: 75vh;
+  background: #fff;
+  display: flex;
+  justify-content: center;
 }
 
 input[type='checkbox'] {
@@ -40,17 +50,18 @@ input[type='checkbox'] {
   flex-direction: column;
   justify-content: center;
 }
-
+/*
 @media only screen and (orientation: landscape) {
   .App { flex-direction: row; }
 }
+*/
 
 .Scoreboard {
   display: flex;
   flex-direction: column;
   border: 1px solid #bbb;
   border-radius: 0.5rem;
-  margin: 1rem 0;
+  margin: 1rem 5vh;
   overflow: hidden;
 }
 
@@ -125,8 +136,8 @@ input[type='checkbox'] {
   overflow: hidden;
   align-items: center;
 
-  width: 60vmin;
-  margin: 5vmin;
+  width: calc(100% - 10vh);
+  margin: 5vh;
   box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
   border-radius: 1em;
   transition: height var(--animationSpeed), width var(--animationSpeed);
@@ -148,10 +159,9 @@ input[type='checkbox'] {
 
 .WelcomeFields {
   display: grid;
-  grid-template-columns: 50% 6ch;
+  grid-template-columns: 50% calc(6ch + 2vmin);
   grid-auto-rows: 2rem;
   align-items: center;
-  padding: 2vmin;
   margin: auto;
   width: 80%;
 }
@@ -161,7 +171,7 @@ input[type='checkbox'] {
 }
 
 .WelcomeFields > label {
-  justify-self: center;
+  margin: 0 calc(0.5vw + 3ch - 0.5rem);
 }
 
 .WelcomeInput {
@@ -190,17 +200,17 @@ input[type='checkbox'] {
 }
 
 .BoardLayer {
-  position: fixed;
-  top: 0;
-  left: 0;
   height: calc(var(--truevh) * 100);
-  width: 100%;
+  max-width: 75vh;
+  background-color: #fff;
   display: flex;
   flex-direction: column;
   justify-items: center;
   align-items: center;
+  margin: auto;
 }
 
+/*
 @media only screen and (orientation: landscape) {
   .BoardLayer {
     flex-direction: row;
@@ -212,12 +222,14 @@ input[type='checkbox'] {
     align-self: center;
   }
 }
+*/
 
 .BoardWrapper {
   border: 0.1rem solid #888;
   border-radius: 0.5rem;
   overflow: hidden;
   box-shadow: 2px 2px 2px #888;
+  width: calc(100% - 10vh);
 }
 
 .BoardInfo {
@@ -239,8 +251,8 @@ input[type='checkbox'] {
   border: 1px solid #888;
   background-color: #888;
   display: grid;
-  width: 80vmin;
-  height: 80vmin;
+  width: 100%;
+  aspect-ratio: 1 / 1;
 }
 
 .QRWrapper {
@@ -314,11 +326,13 @@ input[type='checkbox'] {
   justify-content: center;
 }
 
+/*
 @media only screen and (orientation: landscape) {
   .TouchToggle {
     width: auto;
   }
 }
+*/
 
 .ToggleFlagging {
   border: 1px solid #93291E;
