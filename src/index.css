@@ -137,7 +137,7 @@ input[type='checkbox'] {
   align-items: center;
 
   width: calc(100% - 10vh);
-  margin: 5vh;
+  margin: 2vh 5vh;
   box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
   border-radius: 1em;
   transition: height var(--animationSpeed), width var(--animationSpeed);
