@@ -202,7 +202,7 @@ input[type='checkbox'] {
 
 .BoardLayer {
   height: calc(var(--truevh) * 100);
-  max-width: 75vh;
+  width: calc(var(--truevw) * 100);
   background-color: #fff;
   display: flex;
   flex-direction: column;
