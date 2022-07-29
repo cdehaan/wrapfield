@@ -1,8 +1,9 @@
 :root {
   /*font-size: calc(min(2.5vmax, (100vmin - 1vh) * .04));*/
-  font-size: 2.5vh;
+  font-size: 2vh;
   --animationSpeed: 0.5s;
   --truevh: 1px;
+  --truevw: calc(min(1vh * 0.75, 1vw));
 }
 
 /*
@@ -33,7 +34,7 @@ body {
 
 #root {
   height: 100%;
-  max-width: 75vh;
+  width: calc(var(--truevw)*100);
   background: #fff;
   display: flex;
   justify-content: center;
@@ -136,7 +137,7 @@ input[type='checkbox'] {
   overflow: hidden;
   align-items: center;
 
-  width: calc(100% - 10vh);
+  width: calc(var(--truevw) * 80);
   margin: 2vh 5vh;
   box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
   border-radius: 1em;
@@ -229,7 +230,7 @@ input[type='checkbox'] {
   border-radius: 0.5rem;
   overflow: hidden;
   box-shadow: 2px 2px 2px #888;
-  width: calc(100% - 10vh);
+  width: calc(var(--truevw) * 80);
 }
 
 .BoardInfo {
@@ -251,8 +252,8 @@ input[type='checkbox'] {
   border: 1px solid #888;
   background-color: #888;
   display: grid;
-  width: 100%;
-  aspect-ratio: 1 / 1;
+  width: calc(var(--truevw) * 80);
+  height: calc(var(--truevw) * 80);
 }
 
 .QRWrapper {
@@ -275,7 +276,9 @@ input[type='checkbox'] {
   margin: 1px;
   border-radius: 0;
   overflow: hidden;
-  -webkit-user-select: none;
+  -webkit-user-select: none;  /* Chrome all / Safari all */
+  -moz-user-select: none;     /* Firefox all */
+  -ms-user-select: none;      /* IE 10+ */
   user-select: none;
 }
 
@@ -311,7 +314,7 @@ input[type='checkbox'] {
 .TouchToggle {
   display: flex;
   flex-grow: 1;
-  width: calc(100% - 20vmin);
+  width: calc(var(--truevw) * 80);
   border-radius: 5vmin;
   box-sizing: border-box;
   margin: 1rem 10vmin;
