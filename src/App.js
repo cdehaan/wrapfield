@@ -340,7 +340,7 @@ function App() {
 
   return (
     <>
-    <div className="App">
+    <div className="App" style={{display: gameState === "welcome" ? "" : "none"}}>
         <div className='Header' style={{display: gameState === "welcome" ? "" : "none"}}>
           <div className='Scoreboard'>{CreateScoreboard()}</div>
         </div>
