@@ -225,7 +225,7 @@ function PlayField(props) {
   return (
       <>
         <div className='BoardWrapper'>
-          <div className='BoardInfo'>{displayQR ? <span>{boardData.code}</span> : ""}<img className="BoardInfoImage" alt='QR Code' src="QrIcon.svg" onClick={ToggleDisplayQR}/><span>{remainingSafe === 0 ? "🎉" : `🚩: ${remainingFlags}`}</span><span><Timer start={boardData.start} end={boardData.end}></Timer></span></div>
+          <div className='BoardInfo'><img className="BoardInfoImage" alt='QR Code' src="QrIcon.svg" onClick={ToggleDisplayQR}/>{displayQR ? <span>{`https://www.wrapfield.com/?code=${boardData.code}`}</span> : <><span>{remainingSafe === 0 ? "🎉" : `🚩: ${remainingFlags}`}</span><span><Timer start={boardData.start} end={boardData.end}></Timer></span></>}</div>
           <div className='GameBoard' style={gameboardStyle}>{tiles}{displayQR && <div className='QRWrapper'> <QRCode id='QRCode' size={280} value={`https://www.wrapfield.com/?code=${boardData.code}`} /></div>}</div>
         </div>
         <TouchToggle />
