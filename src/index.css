@@ -236,13 +236,17 @@ input[type='checkbox'] {
 .BoardInfo {
   display: flex;
   width: 100%;
-  justify-content: center;
+  justify-content: space-between;
   padding: 0.5rem 0;
   align-items: center;
 }
 
 .BoardInfoImage {
   height: 1.5rem;
+  margin: 0 1rem;
+}
+
+.BoardInfoUrl {
   margin: 0 1rem;
 }
 
