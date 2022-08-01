@@ -46,6 +46,7 @@ function App() {
   }, []);
 
 
+
   // Gets existing player name/key from cookie at startup
   useEffect(() => {
     const existingPlayerName = GetCookie("playerName");
@@ -73,6 +74,8 @@ function App() {
     peer.on('open', PeerOpened);
     setMyData(oldPlayerData => { return {...oldPlayerData, peer: peer} });
   }, []);
+
+
 
   // Read message from another player: text, player data, quantum board updates, or full board data
   const ProcessMessage = useCallback((data) => {
@@ -102,15 +105,7 @@ function App() {
     const remoteUpdates = data.updates;
     if(remoteUpdates) {
       console.log("Remote updates received");
-      setBoardData(oldBoardData => {
-        const newBoardData = {...oldBoardData};
-        remoteUpdates.forEach(update => {
-          if(update.owner  !== undefined) { newBoardData.cells[update.y][update.x].owner  = update.owner;  }
-          if(update.state  !== undefined) { newBoardData.cells[update.y][update.x].state  = update.state;  }
-          if(update.scored !== undefined) { newBoardData.cells[update.y][update.x].scored = update.scored; }  
-        });
-        return newBoardData;
-      });  
+      IncorporateUpdates(remoteUpdates);
     }
 
     const board = data.board;
@@ -119,6 +114,43 @@ function App() {
       setBoardData(oldBoardData => { return {...oldBoardData, ...board}; });
     }
   }, [boardData]);
+
+
+  function IncorporateUpdates(updates) {
+    setBoardData(oldBoardData => {
+      const newBoardData = {...oldBoardData};
+      if(!oldBoardData.start) { newBoardData.start = new Date(); }
+
+      updates.forEach(update => {
+        // Missing data, ignore the update (null is not considered "missing")
+        if(update.owner === undefined || update.state === undefined || update.scored === undefined) { return; }
+
+        const existingOwners = newBoardData.cells[update.y][update.x].owner;
+        const existingSate   = newBoardData.cells[update.y][update.x].state;
+        const existingScored = newBoardData.cells[update.y][update.x].scored;
+
+        const updateOwner  = update.owner;
+        const updateSate   = update.state;
+        const updateScored = update.scored;
+
+        // should create a const for if I am an existing owner
+      });
+
+
+      const remainingSafe = !boardData.cells ? 0 : boardData.cells.reduce((rowsSum, row) => {
+        return rowsSum + row.reduce((cellsSum, cell) => {
+          return cellsSum + ((cell.state === 's') ? 1 : 0) + ((cell.state === 'd') ? 1 : 0);
+        }, 0);
+      }, 0);
+      
+      if(remainingSafe === 0 && !oldBoardData.end) { newBoardData.end = new Date(); }
+
+      return newBoardData;
+    });
+  }
+
+
+
 
   // Set peer data receive event.
   const PeerConnected = useCallback((conn) => {
@@ -134,6 +166,9 @@ function App() {
     });
   }, [ProcessMessage]);
 
+
+
+
   // Set peer connection event. Will send current board data right away, then listen for updates.
   useEffect(() => {
     const peer = myData.peer;
@@ -144,32 +179,14 @@ function App() {
   }, [myData.peer, PeerConnected]);
 
 
+
+  // Send updates (tile clicks) to all other players
   function BroadcastUpdates(localUpdates) {
     for(const competitor of competitors) {
       competitor.conn.send({updates: localUpdates});
     }
-    setBoardData(oldBoardData => {
-      const newBoardData = {...oldBoardData};
-      if(!oldBoardData.start) { newBoardData.start = new Date(); }
-
-      localUpdates.forEach(update => {
-        if(update.owner !== undefined)  { newBoardData.cells[update.y][update.x].owner  = update.owner;  }
-        if(update.state !== undefined)  { newBoardData.cells[update.y][update.x].state  = update.state;  }
-        if(update.scored !== undefined) { newBoardData.cells[update.y][update.x].scored = update.scored; }
-      });
-
-      localUpdates = [];
-
-      const remainingSafe = !boardData.cells ? 0 : boardData.cells.reduce((rowsSum, row) => {
-        return rowsSum + row.reduce((cellsSum, cell) => {
-          return cellsSum + ((cell.state === 's') ? 1 : 0) + ((cell.state === 'd') ? 1 : 0);
-        }, 0);
-      }, 0);
-      
-      if(remainingSafe === 0 && !oldBoardData.end) { newBoardData.end = new Date(); }
-
-      return newBoardData;
-    });
+    IncorporateUpdates(localUpdates);
+    localUpdates = [];
   }
 
 
@@ -203,7 +220,9 @@ function App() {
       playerSecret: GetCookie("playerSecret")  // Will be null for new players
     }
 
-    const createBoardResponse = JSON.parse(await SendData("CreateBoard.php", newBoardData));
+    //const createBoardResponse = JSON.parse(await SendData("CreateBoard.php", newBoardData));
+    const reply = await SendData("CreateBoard.php", newBoardData);
+    const createBoardResponse = JSON.parse(reply);
     console.log(createBoardResponse);
 
     setBoardData(createBoardResponse.board);
@@ -291,7 +310,7 @@ function App() {
     function CalculateScore(playerKey) {
       if(!boardData || !boardData.cells || !playerKey) { return 0; }
       const scoredCells = [];
-      boardData.cells.forEach(row => row.forEach(cell => {if(cell.owner === playerKey && cell.neighbours > 0 && cell.scored === true) { scoredCells.push(cell); }}));
+      boardData.cells.forEach(row => row.forEach(cell => {if(cell.owner !== null && cell.owner.includes(playerKey) && cell.neighbours > 0 && cell.scored === true) { scoredCells.push(cell); }}));
       const score = scoredCells.reduce((sum, cell) => {
         const cellScore = (cell.state === "f" || cell.state === "d") ? 1 : (cell.state === "c") ? cell.neighbours : -10;
         return sum + cellScore;
@@ -321,7 +340,7 @@ function App() {
       const myRow = playerData.playerKey === myData.playerKey;
       const flagCount = !boardData.cells ? 0 : boardData.cells.reduce((rowsSum, row) => {
         return rowsSum + row.reduce((cellsSum, cell) => {
-          return cellsSum + ((cell.owner === playerData.playerKey && (cell.state === 'f' || cell.state === 'd')) ? 1 : 0);
+          return cellsSum + ((cell.owner !== null && cell.owner.includes(playerData.playerKey) && (cell.state === 'f' || cell.state === 'd')) ? 1 : 0);
         }, 0);
       }, 0);
       return <div key={`${playerData.playerKey}`} className='ScoreboardRow'><div className={`ScoreboardColor ${myRow ? 'MyColor' : 'CompetitorColor'}`}></div><div className='ScoreboardConnected'>{playerData.active ? "✓" : <img src='spinner.svg' className='ScoreboardImage' alt='⌛'/>}</div><div className='ScoreboardEmoji'><span role="img" aria-label="sushi">🍣</span></div><div className={`${myRow ? '' : 'ScoreboardName'}`}>{myRow ? <input type='text' className='ScoreboardTextbox' value={hotUsername} onChange={HandleNameChange}/> : playerData.name}</div><div className='ScoreboardScore'>{CalculateScore(playerData.playerKey)}</div><div className='ScoreboardFlags'>{flagCount}</div></div>
@@ -335,6 +354,8 @@ function App() {
     return scoreboard;
 
   },[myData, hotUsername, nameUpdateTimeout, competitors, boardData]);
+
+
 
   const showCreateGame = new URLSearchParams(window.location.search).get('code') === null;
 
