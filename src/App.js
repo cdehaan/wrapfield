@@ -126,14 +126,35 @@ function App() {
         if(update.owner === undefined || update.state === undefined || update.scored === undefined) { return; }
 
         const existingOwners = newBoardData.cells[update.y][update.x].owner;
-        const existingSate   = newBoardData.cells[update.y][update.x].state;
+        const existingState  = newBoardData.cells[update.y][update.x].state;
         const existingScored = newBoardData.cells[update.y][update.x].scored;
 
         const updateOwner  = update.owner;
-        const updateSate   = update.state;
+        const updateState  = update.state;
         const updateScored = update.scored;
 
-        // should create a const for if I am an existing owner
+        const currentOwner = existingOwners.includes(myData.playerKey);
+
+        // Normal (no conflict) updates
+        // Clear a safe cell (#1)
+        if(existingState === "s" && updateState === "c" && existingOwners === null) {
+          newBoardData.cells[update.y][update.x].owner  = updateOwner;
+          newBoardData.cells[update.y][update.x].state  = updateState;
+          newBoardData.cells[update.y][update.x].scored = updateScored;
+        }
+
+        // Explode a mine (#2)
+        if(existingState === "m" && updateState === "e" && existingOwners === null) {
+          newBoardData.cells[update.y][update.x].owner  = updateOwner;
+          newBoardData.cells[update.y][update.x].state  = updateState;
+          newBoardData.cells[update.y][update.x].scored = updateScored;
+        }
+
+
+        // Clear someone else's dud (#3)
+        if(existingState === "d" && updateState === "c" && existingOwners !== null && !existingOwners.includes()) {
+
+        }
       });
 
 
