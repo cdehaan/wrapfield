@@ -313,7 +313,7 @@ function App() {
       });
 
 
-      const remainingSafe = !boardData.cells ? 0 : boardData.cells.reduce((rowsSum, row) => {
+      const remainingSafe = !boardData.cells ? null : boardData.cells.reduce((rowsSum, row) => {
         return rowsSum + row.reduce((cellsSum, cell) => {
           return cellsSum + ((cell.state === 's') ? 1 : 0) + ((cell.state === 'd') ? 1 : 0);
         }, 0);
