@@ -137,9 +137,11 @@ function PlayField(props) {
       }
     } else { // Not flagging
       if(cellState === "s") { // Unknown (safe) -> clear
-        const oneUpdate = {y: cell.y, x: cell.x, owner:myData.playerKey, state: "c", scored: true};
-        localUpdates.push(oneUpdate);
         if(cell.neighbours === 0) { DeepClick(cell); }
+        else {
+          const oneUpdate = {y: cell.y, x: cell.x, owner:myData.playerKey, state: "c", scored: true};
+          localUpdates.push(oneUpdate);  
+        }
       }  
 
       if(cellState === "m") { // Unknown (mine) -> explode
@@ -149,9 +151,11 @@ function PlayField(props) {
 
       if(cellState === "d") { // Dud
         if(cellOwner !== null && !cellOwner.includes(myData.playerKey)) { // Someone else's dud -> clear
-          const oneUpdate = {y: cell.y, x: cell.x, owner:myData.playerKey, state: "c", scored: true};
-          localUpdates.push(oneUpdate);
           if(cell.neighbours === 0) { DeepClick(cell); }
+          else {
+            const oneUpdate = {y: cell.y, x: cell.x, owner:myData.playerKey, state: "c", scored: true};
+            localUpdates.push(oneUpdate);  
+          }
         }
       }
   
@@ -174,7 +178,7 @@ function PlayField(props) {
     // Another player has claimed this cell, we can't change it in a deep click
     if(cellOwner !== null) { return; }
 
-    const oneUpdate = {y: cellY, x: cellX, owner: myData.playerKey, state: "c"};
+    const oneUpdate = {y: cellY, x: cellX, owner: myData.playerKey, state: "c", scored: false};
     localUpdates.push(oneUpdate);
 
     if(cell.neighbours === 0) {
