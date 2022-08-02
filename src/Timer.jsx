@@ -12,7 +12,7 @@ function Timer(props) {
   });
 
   return(
-    <span className="Timer">{`${Math.floor(elapsedTime/60)}:${("00" + (elapsedTime%60)).slice(-2)}`}</span>
+    <span className="Timer">{`${elapsedTime>= 3600 ? `${Math.floor(elapsedTime/3600)}:` : ""}${Math.floor(elapsedTime/60)%60}:${("00" + (elapsedTime%60)).slice(-2)}`}</span>
   )
 }
 

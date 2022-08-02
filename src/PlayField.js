@@ -49,7 +49,7 @@ function PlayField(props) {
     if(cellState === "c" || cellState === "e") { return; }
 
     // Can't right click someone else's flag
-    if((cellState === "f" || cellState === "d") && cellOwner !== myData.playerKey) { return; }
+    if((cellState === "f" || cellState === "d") && !cellOwner.includes(myData.playerKey)) { return; }
 
     // Flag a mine
     if(cellState === "m") {
@@ -122,24 +122,26 @@ function PlayField(props) {
         localUpdates.push(oneUpdate);
       }
 
-      if(cellState === "f") { // True flag
-        if(cellOwner === myData.playerKey) { // My true flag -> unset
-          const oneUpdate = {y: cell.y, x: cell.x, owner:null, state: "m", scored: null};
+      if(cellState === "d") { // Dud
+        if(cellOwner !== null && cellOwner.includes(myData.playerKey)) { // My dud -> unset
+          const oneUpdate = {y: cell.y, x: cell.x, owner:myData.playerKey, state: "s", scored: null};
           localUpdates.push(oneUpdate);
         }
       }
 
-      if(cellState === "d") { // Dud
-        if(cellOwner === myData.playerKey) { // My dud -> unset
-          const oneUpdate = {y: cell.y, x: cell.x, owner:null, state: "s", scored: null};
+      if(cellState === "f") { // True flag
+        if(cellOwner !== null && cellOwner.includes(myData.playerKey)) { // My true flag -> unset
+          const oneUpdate = {y: cell.y, x: cell.x, owner:myData.playerKey, state: "m", scored: null};
           localUpdates.push(oneUpdate);
         }
       }
     } else { // Not flagging
       if(cellState === "s") { // Unknown (safe) -> clear
-        const oneUpdate = {y: cell.y, x: cell.x, owner:myData.playerKey, state: "c", scored: true};
-        localUpdates.push(oneUpdate);
         if(cell.neighbours === 0) { DeepClick(cell); }
+        else {
+          const oneUpdate = {y: cell.y, x: cell.x, owner:myData.playerKey, state: "c", scored: true};
+          localUpdates.push(oneUpdate);  
+        }
       }  
 
       if(cellState === "m") { // Unknown (mine) -> explode
@@ -147,18 +149,20 @@ function PlayField(props) {
         localUpdates.push(oneUpdate);
       }
 
-      if(cellState === "f") { // True flag
-        if(cellOwner !== myData.playerKey) { // Someone else's true flag -> explode
-          const oneUpdate = {y: cell.y, x: cell.x, owner:myData.playerKey, state: "e", scored: true};
-          localUpdates.push(oneUpdate);
+      if(cellState === "d") { // Dud
+        if(cellOwner !== null && !cellOwner.includes(myData.playerKey)) { // Someone else's dud -> clear
+          if(cell.neighbours === 0) { DeepClick(cell); }
+          else {
+            const oneUpdate = {y: cell.y, x: cell.x, owner:myData.playerKey, state: "c", scored: true};
+            localUpdates.push(oneUpdate);  
+          }
         }
       }
-    
-      if(cellState === "d") { // Dud
-        if(cellOwner !== myData.playerKey) { // Someone else's dud -> clear
-          const oneUpdate = {y: cell.y, x: cell.x, owner:myData.playerKey, state: "c", scored: true};
+  
+      if(cellState === "f") { // True flag
+        if(cellOwner !== null && !cellOwner.includes(myData.playerKey)) { // Someone else's true flag -> explode
+          const oneUpdate = {y: cell.y, x: cell.x, owner:myData.playerKey, state: "e", scored: true};
           localUpdates.push(oneUpdate);
-          if(cell.neighbours === 0) { DeepClick(cell); }
         }
       }
     }
@@ -174,7 +178,7 @@ function PlayField(props) {
     // Another player has claimed this cell, we can't change it in a deep click
     if(cellOwner !== null) { return; }
 
-    const oneUpdate = {y: cellY, x: cellX, owner: myData.playerKey, state: "c"};
+    const oneUpdate = {y: cellY, x: cellX, owner: myData.playerKey, state: "c", scored: false};
     localUpdates.push(oneUpdate);
 
     if(cell.neighbours === 0) {
@@ -209,13 +213,14 @@ function PlayField(props) {
   if(boardData && boardData.cells) {
     for (let y=0; y<height; y++) {
       for(let x=0; x<width; x++) {
-          const tile = boardData.cells[y][x];
-          const tileOwner = tile.owner;
-          const tileState = tile.state;
-          const isSafe = (boardData.safe && tileState === "s" && boardData.safe.y === y && boardData.safe.x === x && boardData.hint === true);
-          const tileText = (tileState === "d" || tileState === "f") ? "🚩" : (tileState === "m" || tileState === "e") ? "💣" : boardData.cells[y][x].neighbours > 0 ? boardData.cells[y][x].neighbours : isSafe ? "◎" : "";
-          const stateClassName = isSafe ? "Safe" : tileOwner === null ? "Unknown" : (tileState === "d" || tileState === "f") ? "Flagged" : tileState === "c" ? "Cleared" : "Exploded";
-          const ownerClassName = tileOwner === null ? "" : tileOwner === myData.playerKey ? "MyTile" : "CompetitorTile";
+          const cell = boardData.cells[y][x];
+          const cellOwner = cell.owner;
+          const cellState = cell.state;
+          const isSafe = (boardData.safe && cellState === "s" && boardData.safe.y === y && boardData.safe.x === x && boardData.hint === true);
+
+          const tileText = (cellState === "d" || cellState === "f") ? "🚩" : (cellState === "m" || cellState === "e") ? "💣" : boardData.cells[y][x].neighbours > 0 ? boardData.cells[y][x].neighbours : isSafe ? "◎" : "";
+          const stateClassName = isSafe ? "Safe" : cellOwner === null ? "Unknown" : (cellState === "d" || cellState === "f") ? "Flagged" : cellState === "c" ? "Cleared" : "Exploded";
+          const ownerClassName = cellOwner === null ? "" : cellOwner.includes(myData.playerKey) ? "MyTile" : "CompetitorTile";
           const oneTile = <div key={`x${x}y${y}`} x={x} y={y} className={`Cell ${stateClassName} ${ownerClassName}`} onContextMenu={TileContextMenu} onClick={TileClicked} onDoubleClick={TileDoubleClick}>{tileText}</div>
           tiles.push(oneTile);
       }
