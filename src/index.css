@@ -3,7 +3,7 @@
   font-size: 2vh;
   --animationSpeed: 0.5s;
   --truevh: 1px;
-  --truevw: calc(min(1vh * 0.65, 1vw));
+  --truevw: calc(min(1vh * 0.55, 1vw));
 }
 
 /*
@@ -172,7 +172,7 @@ input[type='checkbox'] {
 }
 
 .WelcomeFields > label {
-  margin: 0 calc(0.5vw + 3ch - 0.5rem);
+  margin: 0 calc(calc(var(--truevw) * 0.5) + 3ch - 0.5rem);
 }
 
 .WelcomeInput {

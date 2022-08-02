@@ -112,7 +112,12 @@ function App() {
     const board = data.board;
     if(board) {
       console.log("Startup board data received");
-      setBoardData(oldBoardData => { return {...oldBoardData, ...board}; });
+      setBoardData(oldBoardData => {
+        const newBoardData = {...oldBoardData, ...board};
+        if(newBoardData.start) { newBoardData.start = new Date(newBoardData.start); }
+        if(newBoardData.end)   { newBoardData.end   = new Date(newBoardData.end);   }
+        return newBoardData;
+      });
     }
   }, [boardData]);
 
