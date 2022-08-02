@@ -358,6 +358,7 @@ function App() {
 
   // Send updates (tile clicks) to all other players
   function BroadcastUpdates(localUpdates) {
+    if(localUpdates && localUpdates.length === 0) { return; }
     for(const competitor of competitors) {
       competitor.conn.send({updates: localUpdates});
     }
