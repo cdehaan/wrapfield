@@ -65,13 +65,13 @@ function PlayField(props) {
 
     // Remove a true flag
     if(cellState === "f") {
-      const oneUpdate = {y: cell.y, x: cell.x, owner:null, state: "m", scored: null};
+      const oneUpdate = {y: cell.y, x: cell.x, owner:myData.playerKey, state: "m", scored: null};
       localUpdates.push(oneUpdate);
     }
 
     // Remove a dud flag
     if(cellState === "d") {
-      const oneUpdate = {y: cell.y, x: cell.x, owner:null, state: "s", scored: null};
+      const oneUpdate = {y: cell.y, x: cell.x, owner:myData.playerKey, state: "s", scored: null};
       localUpdates.push(oneUpdate);
     }
 

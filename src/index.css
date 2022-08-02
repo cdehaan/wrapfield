@@ -3,7 +3,7 @@
   font-size: 2vh;
   --animationSpeed: 0.5s;
   --truevh: 1px;
-  --truevw: calc(min(1vh * 0.75, 1vw));
+  --truevw: calc(min(1vh * 0.65, 1vw));
 }
 
 /*
