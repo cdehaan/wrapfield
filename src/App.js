@@ -56,8 +56,8 @@ function App() {
       setMyData(existingData => { return {...existingData, name: existingPlayerName}; });
     }
 
-    const existingPlayerKey = GetCookie("playerKey");
-    if(existingPlayerKey !== null) {
+    const existingPlayerKey = parseInt(GetCookie("playerKey"));
+    if(Number.isInteger(existingPlayerKey)) {
       setMyData(existingData => { return {...existingData, playerKey: existingPlayerKey}; });
     }
   }, []);
@@ -92,7 +92,7 @@ function App() {
 
 
 
-  // Read message from another player: text, player data, quantum board updates, or full board data
+  // Read message from another player: text, competitor data, quantum board updates, full board data, or heartbeat
   const ProcessMessage = useCallback((data) => {
     if(typeof(data) === "string") { console.log("Message: " + data); return; }
     if(typeof(data) !== "object") { console.log("Data: " + data);    return; }
