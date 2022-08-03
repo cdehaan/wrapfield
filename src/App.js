@@ -93,8 +93,10 @@ function App() {
         if(competitorToUpdate === -1) { console.log("New competitor data not incorporated"); console.log(newCompetitor); return newCompetitors; }
 
         newCompetitors[competitorToUpdate] = {...newCompetitors[competitorToUpdate], ...newCompetitor, active: true};
-        newCompetitors[competitorToUpdate].conn.send("Welcome to Wrapfield");
-        newCompetitors[competitorToUpdate].conn.send({board: boardData});
+        if(newCompetitor.requestBoard) {
+          newCompetitors[competitorToUpdate].conn.send("Welcome to Wrapfield");
+          newCompetitors[competitorToUpdate].conn.send({board: boardData});  
+        }
 
         // A player reconnecting will have an old entry in Competitors array. Filter out any competitor with the same player key and different Peer ID
         newCompetitors = newCompetitors.filter(competitor => { return (competitor.peerId === newCompetitor.peerId || competitor.playerKey !== newCompetitor.playerKey); })
@@ -168,6 +170,20 @@ function App() {
     }
     HandleUpdates(localUpdates);
     localUpdates = [];
+  }
+
+
+  // Send my data to all other players
+  function BroadcastMyData(broadcastData) {
+    if(!broadcastData) { return; }
+    for(const competitor of competitors) {
+      competitor.conn.send({competitor: {
+        playerKey: broadcastData.playerKey,
+        name: broadcastData.name,
+        peerId: broadcastData.peerId,
+        requestBoard: broadcastData.requestBoard
+      }});
+    }
   }
 
 
@@ -271,6 +287,7 @@ function App() {
             playerKey: joinBoardResponse.player.playerKey,
             name: hotUsername,
             peerId: myData.peerId,
+            requestBoard: true
           }});
         }, 500);
       });
@@ -310,6 +327,12 @@ function App() {
         existingPlayerData.name = newName;
         setMyData(existingPlayerData);
         console.log('My new name is: ' + newName);
+        BroadcastMyData({
+          playerKey: existingPlayerData.playerKey,
+          name: existingPlayerData.name,
+          peerId: existingPlayerData.peerId,
+          requestBoard: false
+        });
   
         let cookieDate = new Date();
         cookieDate.setMonth(cookieDate.getMonth()+1);  
