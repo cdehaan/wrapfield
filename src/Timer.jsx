@@ -11,8 +11,12 @@ function Timer(props) {
     return () => clearInterval(interval);
   });
 
+  const seconds = ("00" + (elapsedTime%60)).slice(-2);
+  const minutes = (elapsedTime>= 3600 ? ("00" + Math.floor(elapsedTime/60)%60).slice(-2) : Math.floor(elapsedTime/60)%60) + ":";
+  const hours   =  elapsedTime>= 3600 ? Math.floor(elapsedTime/3600) + ":" : "";
+
   return(
-    <span className="Timer">{`${elapsedTime>= 3600 ? `${Math.floor(elapsedTime/3600)}:` : ""}${Math.floor(elapsedTime/60)%60}:${("00" + (elapsedTime%60)).slice(-2)}`}</span>
+    <span className="Timer">{hours+minutes+seconds}</span>
   )
 }
 
