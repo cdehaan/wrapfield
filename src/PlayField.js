@@ -94,7 +94,7 @@ function PlayField(props) {
     if(flagging) { return; }
 
     const neighbourCells = GetNeighbours(cell);
-    neighbourCells.forEach(cell => { DeepClick(cell); });
+    neighbourCells.forEach(cell => { if(["s","m"].includes(cell.state)) {RevealCell(cell);} });
     props.BroadcastUpdates(localUpdates);
   }
 
