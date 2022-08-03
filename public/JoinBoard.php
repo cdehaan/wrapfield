@@ -71,6 +71,17 @@
     $returnData['player']['secret'] = $playerSecret;
     $returnData['player']['playerKey'] = intval($playerKey);
     
+    // If the player is connected to another board, remove them
+    $sql = "DELETE FROM connection WHERE player_key = $playerKey AND board_key != $boardKey;";
+    $result = $conn->query($sql);
+    if($result === false) { $returnData['error'] = 'Error deleting previous board connection.'; die(json_encode($returnData)); }
+
+
+    // If this results in a board with no connected players, delete the board
+    $sql = "DELETE FROM board WHERE board_key NOT IN (SELECT board_key FROM connection);";
+    $result = $conn->query($sql);
+    if($result === false) { $returnData['error'] = 'Error deleting empty board.'; die(json_encode($returnData)); }
+
 
     // Query if player is already connected to the board they asked to join. Can only be true for existing players.
     $existingConnection = false;
