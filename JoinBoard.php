@@ -71,7 +71,7 @@
     $returnData['player']['secret'] = $playerSecret;
     $returnData['player']['playerKey'] = intval($playerKey);
     
-    // If the player is connected to another board, remove them
+    // If the player is connected to a previous board, remove that connection
     $sql = "DELETE FROM connection WHERE player_key = $playerKey AND board_key != $boardKey;";
     $result = $conn->query($sql);
     if($result === false) { $returnData['error'] = 'Error deleting previous board connection.'; die(json_encode($returnData)); }
