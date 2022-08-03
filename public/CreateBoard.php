@@ -38,7 +38,7 @@
         $playerName = substr(preg_replace('/[^\\p{L} 0-9]/mu', '-', $playerInput->name), 0, 20);
     }
 
-    if(!isset($playerInput->peerId)) { die('No Peer Id found when creating board.'); }
+    if(!isset($playerInput->peerId)) { $returnData['error'] = 'No Peer Id found when creating board.'; die(json_encode($returnData)); }
     $peerId = substr(preg_replace("/[^A-Za-z0-9 -]/", '', $playerInput->peerId), 0, 50); //5456de20-0bc4-479e-83dd-9805450fae03
     // End - Clean data from the player creating the board
 
@@ -156,10 +156,10 @@
 
         $sql = "INSERT INTO player (name, secret, peer_id) VALUES ('$playerName', '$playerSecret', '$peerId');";
         if ($conn->query($sql) === TRUE) { $playerKey = $conn->insert_id; }
-        else { die('Error creating new player.'); }
+        else { $returnData['error'] = 'Error creating new player'; die(json_encode($returnData)); }
     } else {
         $sql = "UPDATE player SET name = '$playerName', peer_id = '$peerId' WHERE player_key = $playerKey;";
-        if ($conn->query($sql) !== TRUE) { die('Error updating player data.'); }
+        if ($conn->query($sql) !== TRUE) { $returnData['error'] = 'Error updating player data'; die(json_encode($returnData)); }
     }
     $returnData['player']['secret'] = $playerSecret;
     $returnData['player']['playerKey'] = $playerKey;
@@ -170,7 +170,7 @@
     $boardCellsString = json_encode($boardCells);
     $sql = "INSERT INTO board (code, secret, private, width, height, mines, wrapfield, cells) VALUES ('$boardCode', '$boardSecret', $private, $width, $height, $mines, $wrapfield, '$boardCellsString');";
     if ($conn->query($sql) === TRUE) { $boardKey = $conn->insert_id; }
-    else {die('Error creating new board.'); }
+    else { $returnData['error'] = 'Error creating new board'; die(json_encode($returnData)); }
     $returnData['board']['key'] = $boardKey;
 
 
@@ -178,9 +178,21 @@
     // Connect the player to the board we just made
     $sql = "INSERT INTO connection (player_key, board_key) VALUES ($playerKey, $boardKey);";
     if ($conn->query($sql) === TRUE) { $connectionKey = $conn->insert_id; }
-    else {die('Error creating new connection.'); }
+    else {$returnData['error'] = 'Error creating new connection'; die(json_encode($returnData)); }
     $returnData['connection']['key'] = $connectionKey;
 
+
+    // If the player is connected to a previous board, remove that connection
+    $sql = "DELETE FROM connection WHERE player_key = $playerKey AND board_key != $boardKey;";
+    $result = $conn->query($sql);
+    if($result === false) { $returnData['error'] = 'Error deleting previous board connection.'; die(json_encode($returnData)); }
+
+
+
+    // If this results in a board with no connected players, delete the board
+    $sql = "DELETE FROM board WHERE board_key NOT IN (SELECT board_key FROM connection);";
+    $result = $conn->query($sql);
+    if($result === false) { $returnData['error'] = 'Error deleting empty board.'; die(json_encode($returnData)); }
 
 
     echo json_encode($returnData);
