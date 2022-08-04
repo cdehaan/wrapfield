@@ -77,23 +77,28 @@ function App() {
   }, []);
 
 
-  // Heartbeat to all competitors
+  // Heartbeats to all competitors
   useEffect(() => {
-    setTimeout(() => {
-      competitors.forEach(competitor => {
+    const heartbeats = [];
+    competitors.forEach(competitor => {
+      heartbeats.push(setInterval(() => {
         competitor.conn.send({heartbeat : {
           stage: 1,
           playerKey: myData.playerKey
         }});
         console.log("Heartbeat stage 1 sent");
-      });
-    }, 1000);
+      }, 3000));
+    });
+    return () => {
+      heartbeats.forEach(heartbeat => { clearInterval(heartbeat); });
+    }
   }, [competitors]);
 
 
 
   // Read message from another player: text, competitor data, quantum board updates, full board data, or heartbeat
   const ProcessMessage = useCallback((data) => {
+  //function ProcessMessage(data) {
     if(typeof(data) === "string") { console.log("Message: " + data); return; }
     if(typeof(data) !== "object") { console.log("Data: " + data);    return; }
     if(data === null) { console.log("Got an empty data message.");   return; }
@@ -112,7 +117,7 @@ function App() {
           newCompetitors[competitorToUpdate].conn.send({board: boardData});  
         }
 
-        // A player reconnecting will have an old entry in Competitors array. Filter out any competitor with the same player key and different Peer ID
+        // A reconnecting player will have an old entry in Competitors array. Filter out any competitor with the same player key and different Peer ID
         newCompetitors = newCompetitors.filter(competitor => { return (competitor.peerId === newCompetitor.peerId || competitor.playerKey !== newCompetitor.playerKey); })
 
         return newCompetitors;
@@ -136,12 +141,31 @@ function App() {
       });
     }
 
-    const heartbeat = data.heartbeat;
+    const heartbeat = data.heartbeat; // {stage: 1, playerKey: 140}
     if(heartbeat) {
-      console.log("Heartbeat stage 1 received");
+        console.log("Heartbeat stage 1 received:");
+        console.log(heartbeat);
+        if(heartbeat.stage === 1) {
+          const competitor = competitors.find(comp => comp.playerKey === heartbeat.playerKey);
+          if(competitor) {
+            competitor.conn.send({heartbeat : {
+              stage: 2,
+              playerKey: myData.playerKey
+            }});
+            console.log("Heartbeat stage 2 sent:");
+          } else {
+            console.log("Heartbeat could not be returned");
+          }
+        }
+  
+        if (heartbeat.stage === 2) {
+          console.log("Heartbeat stage 2 received:");
+          console.log(heartbeat);  
+        }  
     }
 
-  }, [boardData]);
+  }, [boardData, competitors]);
+  //}
 
 
   function HandleUpdates(updates) {
