@@ -27,6 +27,7 @@ function App() {
   });
   const [myData,      setMyData]      = useState({name: GetCookie("playerName") || "Anonymous", active: false, peerId: null, peer: null});
   const [competitors, setCompetitors] = useState([]);
+  const [heartbeats,  setHeartbeats]  = useState(null)
 
   // Handle window resize
   useEffect(() => {
@@ -77,23 +78,37 @@ function App() {
   }, []);
 
 
-  // Heartbeats to all competitors
+  // Send heartbeats to all competitors
   useEffect(() => {
-    const heartbeats = [];
+    const heartbeatsSent = [];
     competitors.forEach(competitor => {
-      heartbeats.push(setInterval(() => {
+      heartbeatsSent.push(setInterval(() => {
         competitor.conn.send({heartbeat : {
           stage: 1,
           playerKey: myData.playerKey
         }});
-        console.log("Heartbeat stage 1 sent");
+        //console.log("Heartbeat stage 1 sent"); // ok
       }, 3000));
     });
     return () => {
-      heartbeats.forEach(heartbeat => { clearInterval(heartbeat); });
+      heartbeatsSent.forEach(heartbeat => { clearInterval(heartbeat); });
     }
   }, [competitors]);
 
+  // Return heartbeats to all competitors
+  useEffect(() => {
+    if(!heartbeats) { return; }
+    const competitor = competitors.find(comp => comp.playerKey === heartbeats.playerKey);
+    if(competitor) {
+      competitor.conn.send({heartbeat : {
+        stage: 2,
+        playerKey: myData.playerKey
+      }});
+      //console.log("Heartbeat stage 2 sent:"); // ok
+    } else {
+      console.log("Heartbeat could not be returned");
+    }
+  }, [heartbeats, competitors]);
 
 
   // Read message from another player: text, competitor data, quantum board updates, full board data, or heartbeat
@@ -142,19 +157,10 @@ function App() {
 
     const heartbeat = data.heartbeat; // {stage: 1, playerKey: 140}
     if(heartbeat) {
-        console.log("Heartbeat stage 1 received:");
-        console.log(heartbeat);
+      //console.log("Heartbeat stage 1 received:"); // ok
+      //console.log(heartbeat); // ok
         if(heartbeat.stage === 1) {
-          const competitor = competitors.find(comp => comp.playerKey === heartbeat.playerKey);
-          if(competitor) {
-            competitor.conn.send({heartbeat : {
-              stage: 2,
-              playerKey: myData.playerKey
-            }});
-            console.log("Heartbeat stage 2 sent:");
-          } else {
-            console.log("Heartbeat could not be returned");
-          }
+          setHeartbeats(heartbeat);
         }
   
         if (heartbeat.stage === 2) {
@@ -187,7 +193,7 @@ function App() {
 
     conn.removeAllListeners('data');
     conn.on('data', function(data) {
-      console.log('Received data as host.');
+      //console.log('Received data as host.'); // ok
       ProcessMessage(data);
     });
   }, [ProcessMessage]);
