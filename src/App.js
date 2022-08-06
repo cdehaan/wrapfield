@@ -164,8 +164,8 @@ function App() {
         }
   
         if (heartbeat.stage === 2) {
-          console.log("Heartbeat stage 2 received:");
-          console.log(heartbeat);  
+          //console.log("Heartbeat stage 2 received:");
+          //console.log(heartbeat);  
         }  
     }
 
