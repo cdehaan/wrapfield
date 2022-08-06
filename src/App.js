@@ -98,7 +98,6 @@ function App() {
 
   // Read message from another player: text, competitor data, quantum board updates, full board data, or heartbeat
   const ProcessMessage = useCallback((data) => {
-  //function ProcessMessage(data) {
     if(typeof(data) === "string") { console.log("Message: " + data); return; }
     if(typeof(data) !== "object") { console.log("Data: " + data);    return; }
     if(data === null) { console.log("Got an empty data message.");   return; }
@@ -165,7 +164,6 @@ function App() {
     }
 
   }, [boardData, competitors]);
-  //}
 
 
   function HandleUpdates(updates) {
@@ -180,23 +178,27 @@ function App() {
 
   // Set peer data receive event.
   const PeerConnected = useCallback((conn) => {
+  //function PeerConnected(conn) {
     console.log('Connected as host to: ' + conn.peer);
 
     // A guest just connected to us. We don't know anything about them yet except their conn (which has their peerId)
     const competitorPlaceholder = {conn: conn, peerId: conn.peer, playerKey: null, name: null, active: false};
     setCompetitors(oldCompetitors => { return [...oldCompetitors, competitorPlaceholder] });
 
+    conn.removeAllListeners('data');
     conn.on('data', function(data) {
       console.log('Received data as host.');
       ProcessMessage(data);
     });
   }, [ProcessMessage]);
+  //}
 
 
 
 
   // Set peer connection event. Will send current board data right away, then listen for updates.
   useEffect(() => {
+
     const peer = myData.peer;
     if(peer) {
       peer.removeAllListeners("connection");
