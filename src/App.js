@@ -330,7 +330,7 @@ function App() {
         competitor.activeConn = true;
         console.log(`Connected as guest to player #${competitor.playerKey}`);
         competitor.conn.on('data', function(data) {
-          console.log('Received data as guest.');
+          //console.log('Received data as guest.');
           ProcessMessage(data);
         });
         competitor.conn.send("Hello from player #" + joinBoardResponse.player.playerKey);
