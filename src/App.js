@@ -432,7 +432,7 @@ function App() {
     </div>
     <div className="BoardLayer" style={{display: gameState === "playing" ? "" : "none"}}>
     <div className='Header'>
-          <div className='Scoreboard'>{CreateScoreboard()}</div>
+        <div className='Scoreboard'>{CreateScoreboard()}</div>
         </div>
         <PlayField boardData={boardData} myData={myData} BroadcastUpdates={BroadcastUpdates} />
     </div>
