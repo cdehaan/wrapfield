@@ -197,6 +197,10 @@ function PlayField(props) {
     setDisplayQR(oldStatus => !oldStatus);
   }
 
+  function NewGame() {
+    
+  }
+
   const remainingFlags = !boardData.cells ? 0 : boardData.cells.reduce((rowsSum, row) => {
     return rowsSum + row.reduce((cellsSum, cell) => {
       return cellsSum + ((cell.state === 'm') ? 1 : 0) - ((cell.state === 'd') ? 1 : 0);
@@ -208,6 +212,10 @@ function PlayField(props) {
       return cellsSum + ((cell.state === 's') ? 1 : 0) + ((cell.state === 'd') ? 1 : 0);
     }, 0);
   }, 0);
+
+  const gameComplete = remainingSafe === 0 && remainingFlags === 0;
+
+  const gameStateDiv = gameComplete ? <>🎉<div className='NewGameButton' onClick={NewGame}>New Game</div></> : `🚩: ${remainingFlags}`
 
   const tiles = [];
   if(boardData && boardData.cells) {
@@ -230,7 +238,7 @@ function PlayField(props) {
   return (
       <>
         <div className='BoardWrapper'>
-          <div className='BoardInfo'><img className="BoardInfoImage" alt='QR Code' src="QrIcon.svg" onClick={ToggleDisplayQR}/>{displayQR ? <span className='BoardInfoUrl'>{`https://www.wrapfield.com/?code=${boardData.code}`}</span> : <><span>{remainingSafe === 0 ? "🎉" : `🚩: ${remainingFlags}`}</span><span><Timer start={boardData.start} end={boardData.end}></Timer></span></>}</div>
+          <div className='BoardInfo'><img className="BoardInfoImage" alt='QR Code' src="QrIcon.svg" onClick={ToggleDisplayQR}/>{displayQR ? <span className='BoardInfoUrl'>{`https://www.wrapfield.com/?code=${boardData.code}`}</span> : <><div style={{display:"flex", alignItems:"center"}}>{gameStateDiv}</div><span><Timer start={boardData.start} end={boardData.end}></Timer></span></>}</div>
           <div className='GameBoard' style={gameboardStyle}>{tiles}{displayQR && <div className='QRWrapper'> <QRCode id='QRCode' size={280} value={`https://www.wrapfield.com/?code=${boardData.code}`} /></div>}</div>
         </div>
         <TouchToggle />

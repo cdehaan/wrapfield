@@ -418,11 +418,17 @@ function App() {
   return (
     <>
     <div className="App" style={{display: gameState === "welcome" ? "" : "none"}}>
-        <div className='Header' style={{display: gameState === "welcome" ? "" : "none"}}>
+        <div className='title'>
+          <span className='title'>Wrapfield</span>
+          <span className='subtitle'>Realtime Multiplayer Minesweeper</span>
+        </div>
+        <div className='logo'></div>
+        <div className='Header'>
           <div className='Scoreboard'>{CreateScoreboard()}</div>
         </div>
         {showCreateGame && <CreateBoard state={gameState} GenerateBoard={GenerateBoard} />}
         <JoinBoard   state={gameState} JoinGame={JoinGame} />
+        <span className='footer'>By Chris DeHaan</span>
     </div>
     <div className="BoardLayer" style={{display: gameState === "playing" ? "" : "none"}}>
     <div className='Header'>
@@ -430,7 +436,7 @@ function App() {
         </div>
         <PlayField boardData={boardData} myData={myData} BroadcastUpdates={BroadcastUpdates} />
     </div>
-    <div className='Footer'>Messages:</div>
+    <div className='Debug'>Messages:</div>
     </>
   );
 }
