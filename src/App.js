@@ -415,21 +415,29 @@ function App() {
 
   const showCreateGame = new URLSearchParams(window.location.search).get('code') === null;
 
+  function WelcomeScreen() {
+    return(
+      <>
+        <div className="Welcome" style={{display: gameState === "welcome" ? "" : "none"}}>
+          <div className='title'>
+            <span className='title'>Wrapfield</span>
+            <span className='subtitle'>Realtime Multiplayer Minesweeper</span>
+          </div>
+          <div className='logo'></div>
+          <div className='Header'>
+            <div className='Scoreboard'>{CreateScoreboard()}</div>
+          </div>
+          {showCreateGame && <CreateBoard state={gameState} GenerateBoard={GenerateBoard} />}
+          <JoinBoard state={gameState} JoinGame={JoinGame} />
+          <span className='footer'>By Chris DeHaan</span>
+        </div>
+      </>
+    )
+  }
+
   return (
     <>
-    <div className="App" style={{display: gameState === "welcome" ? "" : "none"}}>
-        <div className='title'>
-          <span className='title'>Wrapfield</span>
-          <span className='subtitle'>Realtime Multiplayer Minesweeper</span>
-        </div>
-        <div className='logo'></div>
-        <div className='Header'>
-          <div className='Scoreboard'>{CreateScoreboard()}</div>
-        </div>
-        {showCreateGame && <CreateBoard state={gameState} GenerateBoard={GenerateBoard} />}
-        <JoinBoard   state={gameState} JoinGame={JoinGame} />
-        <span className='footer'>By Chris DeHaan</span>
-    </div>
+    {WelcomeScreen()}
     <div className="BoardLayer" style={{display: gameState === "playing" ? "" : "none"}}>
     <div className='Header'>
         <div className='Scoreboard'>{CreateScoreboard()}</div>

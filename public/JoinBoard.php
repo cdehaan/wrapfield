@@ -29,7 +29,7 @@
 
 
     // Player peer ID, other players will use this to connect to the game creator
-    if(!isset($playerInput->peerId)) { $returnData['error'] = 'No Peer Id found when creating board.'; die(json_encode($returnData)); }
+    if(!isset($playerInput->peerId)) { $returnData['error'] = 'No Peer Id found when joining board.'; die(json_encode($returnData)); }
     $peerId = substr(preg_replace("/[^A-Za-z0-9 -]/", '', $playerInput->peerId), 0, 50); //5456de20-0bc4-479e-83dd-9805450fae03
 
 
