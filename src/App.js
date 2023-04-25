@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import Peer from 'peerjs';
 import GetCookie from './GetCookie';
-import SendData from './SendData';
+//import SendData from './SendData';
 
 import './index.css';
 import BoardScreen from './BoardScreen';
@@ -71,6 +71,33 @@ function App() {
     peer.on('open', PeerOpened);
     setMyData(oldPlayerData => { return {...oldPlayerData, peer: peer} });
   }, []);
+
+
+  // Connect to competitors that we don't have a connection to
+  useEffect(() => {
+    const newCompetitors = competitors.filter(competitor => competitor.activeConn === false)
+
+    newCompetitors.forEach(competitor => {
+      console.log(`Connecting to player #${competitor.playerKey} at ${competitor.peerId}`);
+      competitor.conn.on('open', () => {
+        competitor.activeConn = true;
+        console.log(`Connected as guest to player #${competitor.playerKey}`);
+        competitor.conn.on('data', function(data) {
+          //console.log('Received data as guest.');
+          ProcessMessage(data);
+        });
+        competitor.conn.send("Hello from player #" + myData.playerKey);
+        setTimeout(() => {
+          competitor.conn.send({competitor: {
+          playerKey: myData.playerKey,
+          name: myData.name,
+          peerId: myData.peerId,
+          requestBoard: true
+          }});
+        }, 500);
+      });
+    })
+  }, [competitors])
 
 
   // Send heartbeats to all competitors
@@ -217,78 +244,9 @@ function App() {
   }
 
 
-  async function JoinGame(code) {
-    if(myData.peerId === null) {
-      setTimeout(() => {
-        JoinGame(code);
-        console.log("Please come again");
-      }, 500);
-      return;
-    }
-
-    const joinBoardData = {};
-
-    joinBoardData.board = {
-      code: code
-    }
-
-    joinBoardData.player = {
-      name: myData.name,
-      playerKey: GetCookie("playerKey"),
-      playerSecret: GetCookie("playerSecret"),
-      peerId: myData.peerId
-    }
-
-    const joinBoardResponse = JSON.parse(await SendData("JoinBoard.php", joinBoardData));
-    if(joinBoardResponse.error) {
-      alert(joinBoardResponse.error);
-      return;
-    }
-    joinBoardResponse.board.cells = JSON.parse(joinBoardResponse.board.cells)
-    joinBoardResponse.board.active = true
-    console.log(joinBoardResponse)
-
-    setBoardData(joinBoardResponse.board);
-
-    setMyData(existingPlayerData => { return {...existingPlayerData, ...joinBoardResponse.player}; });
-
-    // Exclude myself from the list of competitors
-    const newCompetitors = joinBoardResponse.players.filter(player => player.playerKey !== joinBoardResponse.player.playerKey);
-
-    newCompetitors.forEach(competitor => {
-      competitor.activeConn = false;
-      competitor.conn = myData.peer.connect(competitor.peerId);
-      console.log(`Connecting to player #${competitor.playerKey} at ${competitor.peerId}`);
-      competitor.conn.on('open', () => {
-        competitor.activeConn = true;
-        console.log(`Connected as guest to player #${competitor.playerKey}`);
-        competitor.conn.on('data', function(data) {
-          //console.log('Received data as guest.');
-          ProcessMessage(data);
-        });
-        competitor.conn.send("Hello from player #" + joinBoardResponse.player.playerKey);
-        setTimeout(() => {
-          competitor.conn.send({competitor: {
-            playerKey: joinBoardResponse.player.playerKey,
-            name: myData.name,
-            peerId: myData.peerId,
-            requestBoard: true
-          }});
-        }, 500);
-      });
-    });
-    setCompetitors(newCompetitors);
-
-    let cookieDate = new Date();
-    cookieDate.setMonth(cookieDate.getMonth()+1);
-    if(joinBoardResponse.player.playerKey) { document.cookie = `playerKey=${joinBoardResponse.player.playerKey}; samesite=lax; expires=${cookieDate.toUTCString()}`; }
-    if(joinBoardResponse.player.secret)    { document.cookie = `playerSecret=${joinBoardResponse.player.secret}; samesite=lax; expires=${cookieDate.toUTCString()}`; }
-  }
-
-
   return (
     <>
-    <WelcomeScreen boardData={boardData} myData={myData} competitors={competitors} setMyData={setMyData} setBoardData={setBoardData} JoinGame={JoinGame} />
+    <WelcomeScreen boardData={boardData} myData={myData} competitors={competitors} setMyData={setMyData} setBoardData={setBoardData} setCompetitors={setCompetitors} />
     <BoardScreen   boardData={boardData} myData={myData} competitors={competitors} setMyData={setMyData} BroadcastUpdates={BroadcastUpdates} />
     <div className='Debug'>Messages:</div>
     </>

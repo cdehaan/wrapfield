@@ -4,6 +4,9 @@ import GetCookie from './GetCookie';
 import SendData from './SendData';
 
 function CreateBoard(props) {
+    const showCreateGame = new URLSearchParams(window.location.search).get('code') === null;
+    if(showCreateGame === false) { return null }
+
     const myData = props.myData
     const setMyData = props.setMyData
     const setBoardData = props.setBoardData

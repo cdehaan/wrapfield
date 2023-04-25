@@ -7,10 +7,6 @@ import JoinBoard from "./JoinBoard";
 function WelcomeScreen(props) {
     if(props.boardData.active === true) return null;
 
-    const showCreateGame = new URLSearchParams(window.location.search).get('code') === null;
-
-
-
     return(
         <>
           <div className="Welcome">
@@ -22,8 +18,8 @@ function WelcomeScreen(props) {
             <div className='Header'>
                 <Scoreboard boardData={props.boardData} competitors={props.competitors} myData={props.myData} setMyData={props.setMyData}/>
             </div>
-            {showCreateGame && <CreateBoard active={props.boardData.active} myData={props.myData} setBoardData={props.setBoardData} setMyData={props.setMyData} />}
-            <JoinBoard active={props.boardData.active} JoinGame={props.JoinGame} />
+            <CreateBoard active={props.boardData.active} myData={props.myData} setBoardData={props.setBoardData} setMyData={props.setMyData} />
+            <JoinBoard   active={props.boardData.active} myData={props.myData} setBoardData={props.setBoardData} setMyData={props.setMyData} setCompetitors={props.setCompetitors} />
             <span className='footer'>By Chris DeHaan</span>
           </div>
         </>
