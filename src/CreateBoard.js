@@ -61,7 +61,7 @@ function CreateBoard(props) {
     const maxMines = boardSettings.height*boardSettings.width -1 || 99;
 
     return (
-        <div className={`WelcomeCard ${props.state === "welcome" ? "" : "Shrunk"}`} id="CreateGame" style={{height: (props.state === "welcome" ? height : 0), width: (props.state === "welcome" ? width : 0)}}>
+        <div className={`WelcomeCard ${props.active === false ? "" : "Shrunk"}`} id="CreateGame" style={{height: (props.active === false ? height : 0), width: (props.active === false ? width : 0)}}>
         <span className='WelcomeHeader'>Create Game</span>
             <div className='WelcomeFields'>
                 <span className='WelcomeSpan'>Size</span><input type="number" min={4} max={30}                                          style={{width: "6ch"}} className='WelcomeInput' value={boardSettings.height} onChange={e => HandleSizeChange(e.target.value)}/>

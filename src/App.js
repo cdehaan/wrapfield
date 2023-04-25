@@ -3,18 +3,13 @@ import Peer from 'peerjs';
 import GetCookie from './GetCookie';
 
 import './index.css';
-import CreateBoard from './CreateBoard';
-import JoinBoard from './JoinBoard';
-import PlayField from './PlayField';
+import BoardScreen from './BoardScreen';
 import SendData from './SendData';
+import WelcomeScreen from './WelcomeScreen';
 import IncorporateUpdates from './IncorporateUpdates';
 
 
 function App() {
-  const [nameUpdateTimeout, setNameUpdateTimeout] = useState(null);
-  const [hotUsername, setHotUsername] = useState(GetCookie("playerName") || "Anonymous");
-
-  const [gameState,   setGameState]   = useState("welcome");
   const [boardData,   setBoardData]   = useState({
     cells: null,
     hint: true,
@@ -23,7 +18,8 @@ function App() {
     secret: null,
     wrapfield: false,
     start: null,
-    end: null
+    end: null,
+    active: false
   });
   const [myData,      setMyData]      = useState({name: GetCookie("playerName") || "Anonymous", active: false, peerId: null, peer: null});
   const [competitors, setCompetitors] = useState([]);
@@ -53,7 +49,7 @@ function App() {
   useEffect(() => {
     const existingPlayerName = GetCookie("playerName");
     if(existingPlayerName !== null) {
-      setHotUsername(existingPlayerName);  
+      //setHotUsername(existingPlayerName);  
       setMyData(existingData => { return {...existingData, name: existingPlayerName}; });
     }
 
@@ -225,21 +221,6 @@ function App() {
   }
 
 
-  // Send my data to all other players
-  function BroadcastMyData(broadcastData) {
-    if(!broadcastData) { return; }
-    for(const competitor of competitors) {
-      competitor.conn.send({competitor: {
-        playerKey: broadcastData.playerKey,
-        name: broadcastData.name,
-        peerId: broadcastData.peerId,
-        requestBoard: broadcastData.requestBoard
-      }});
-    }
-  }
-
-
-
   async function GenerateBoard(boardSettings) {
 
     // If Peerjs is still connecting, try again in a little while
@@ -272,6 +253,7 @@ function App() {
     //const createBoardResponse = JSON.parse(await SendData("CreateBoard.php", newBoardData));
     const reply = await SendData("CreateBoard.php", newBoardData);
     const createBoardResponse = JSON.parse(reply);
+    createBoardResponse.board.active = true
     console.log(createBoardResponse);
 
     setBoardData(createBoardResponse.board);
@@ -282,8 +264,6 @@ function App() {
     cookieDate.setMonth(cookieDate.getMonth()+1);
     if(createBoardResponse.player.playerKey) { document.cookie = `playerKey=${createBoardResponse.player.playerKey}; samesite=lax; expires=${cookieDate.toUTCString()}`; }
     if(createBoardResponse.player.secret)    { document.cookie = `playerSecret=${createBoardResponse.player.secret}; samesite=lax; expires=${cookieDate.toUTCString()}`; }
-
-    setGameState("playing");
   }
 
 
@@ -303,7 +283,7 @@ function App() {
     }
 
     joinBoardData.player = {
-      name: hotUsername,
+      name: myData.name,
       playerKey: GetCookie("playerKey"),
       playerSecret: GetCookie("playerSecret"),
       peerId: myData.peerId
@@ -315,13 +295,16 @@ function App() {
       return;
     }
     joinBoardResponse.board.cells = JSON.parse(joinBoardResponse.board.cells)
+    joinBoardResponse.board.active = true
     console.log(joinBoardResponse)
 
     setBoardData(joinBoardResponse.board);
 
     setMyData(existingPlayerData => { return {...existingPlayerData, ...joinBoardResponse.player}; });
 
+    // Exclude myself from the list of competitors
     const newCompetitors = joinBoardResponse.players.filter(player => player.playerKey !== joinBoardResponse.player.playerKey);
+
     newCompetitors.forEach(competitor => {
       competitor.activeConn = false;
       competitor.conn = myData.peer.connect(competitor.peerId);
@@ -337,7 +320,7 @@ function App() {
         setTimeout(() => {
           competitor.conn.send({competitor: {
             playerKey: joinBoardResponse.player.playerKey,
-            name: hotUsername,
+            name: myData.name,
             peerId: myData.peerId,
             requestBoard: true
           }});
@@ -350,10 +333,9 @@ function App() {
     cookieDate.setMonth(cookieDate.getMonth()+1);
     if(joinBoardResponse.player.playerKey) { document.cookie = `playerKey=${joinBoardResponse.player.playerKey}; samesite=lax; expires=${cookieDate.toUTCString()}`; }
     if(joinBoardResponse.player.secret)    { document.cookie = `playerSecret=${joinBoardResponse.player.secret}; samesite=lax; expires=${cookieDate.toUTCString()}`; }
-    setGameState("playing");
   }
 
-
+  /*
   const CreateScoreboard = useCallback(() => {
     const scoreboard = [];
 
@@ -407,43 +389,16 @@ function App() {
     scoreboard.push(CreateScoreboardRow(myData));
     competitors.forEach(competitor => scoreboard.push(CreateScoreboardRow(competitor)));
 
-    return scoreboard;
+    return <div className='Scoreboard'>{scoreboard}</div>;
 
   },[myData, hotUsername, nameUpdateTimeout, competitors, boardData]);
+  */
 
-
-
-  const showCreateGame = new URLSearchParams(window.location.search).get('code') === null;
-
-  function WelcomeScreen() {
-    return(
-      <>
-        <div className="Welcome" style={{display: gameState === "welcome" ? "" : "none"}}>
-          <div className='title'>
-            <span className='title'>Wrapfield</span>
-            <span className='subtitle'>Realtime Multiplayer Minesweeper</span>
-          </div>
-          <div className='logo'></div>
-          <div className='Header'>
-            <div className='Scoreboard'>{CreateScoreboard()}</div>
-          </div>
-          {showCreateGame && <CreateBoard state={gameState} GenerateBoard={GenerateBoard} />}
-          <JoinBoard state={gameState} JoinGame={JoinGame} />
-          <span className='footer'>By Chris DeHaan</span>
-        </div>
-      </>
-    )
-  }
 
   return (
     <>
-    {WelcomeScreen()}
-    <div className="BoardLayer" style={{display: gameState === "playing" ? "" : "none"}}>
-    <div className='Header'>
-        <div className='Scoreboard'>{CreateScoreboard()}</div>
-        </div>
-        <PlayField boardData={boardData} myData={myData} BroadcastUpdates={BroadcastUpdates} />
-    </div>
+    <WelcomeScreen boardData={boardData} myData={myData} competitors={competitors} setMyData={setMyData} GenerateBoard={GenerateBoard} JoinGame={JoinGame} />
+    <BoardScreen   boardData={boardData} myData={myData} competitors={competitors} setMyData={setMyData} BroadcastUpdates={BroadcastUpdates} />
     <div className='Debug'>Messages:</div>
     </>
   );

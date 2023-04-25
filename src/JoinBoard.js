@@ -22,7 +22,7 @@ function JoinBoard(props) {
     }, []);
 
     return (
-        <div className={`WelcomeCard ${props.state === "welcome" ? "" : "Shrunk"}`} id="JoinGame" style={{height: (props.state === "welcome" ? height : 0), width: (props.state === "welcome" ? width : 0)}}>
+        <div className={`WelcomeCard ${props.active === false ? "" : "Shrunk"}`} id="JoinGame" style={{height: (props.active === false ? height : 0), width: (props.active === false ? width : 0)}}>
             <span className='WelcomeHeader'>Join Game</span>
             <div className='WelcomeFields'>
                 <WelcomeField id="JoinGameBoardCode" text="Game code" maxLength={10}  value={boardCode} UpdateFunction={HandleCodeChange}/>
