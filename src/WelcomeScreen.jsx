@@ -22,7 +22,7 @@ function WelcomeScreen(props) {
             <div className='Header'>
                 <Scoreboard boardData={props.boardData} competitors={props.competitors} myData={props.myData} setMyData={props.setMyData}/>
             </div>
-            {showCreateGame && <CreateBoard myData={props.myData} setBoardData={props.setBoardData} setMyData={props.setMyData} />}
+            {showCreateGame && <CreateBoard active={props.boardData.active} myData={props.myData} setBoardData={props.setBoardData} setMyData={props.setMyData} />}
             <JoinBoard active={props.boardData.active} JoinGame={props.JoinGame} />
             <span className='footer'>By Chris DeHaan</span>
           </div>

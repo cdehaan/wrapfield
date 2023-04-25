@@ -10,7 +10,7 @@ import IncorporateUpdates from './IncorporateUpdates';
 
 
 function App() {
-  const [boardData,   setBoardData]   = useState({
+  const [boardData, setBoardData] = useState({
     cells: null,
     hint: true,
     key: null,
