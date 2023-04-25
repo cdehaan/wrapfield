@@ -10,6 +10,7 @@ function WelcomeScreen(props) {
     const showCreateGame = new URLSearchParams(window.location.search).get('code') === null;
 
 
+
     return(
         <>
           <div className="Welcome">
@@ -21,7 +22,7 @@ function WelcomeScreen(props) {
             <div className='Header'>
                 <Scoreboard boardData={props.boardData} competitors={props.competitors} myData={props.myData} setMyData={props.setMyData}/>
             </div>
-            {showCreateGame && <CreateBoard active={props.boardData.active} GenerateBoard={props.GenerateBoard} />}
+            {showCreateGame && <CreateBoard myData={props.myData} setBoardData={props.setBoardData} setMyData={props.setMyData} />}
             <JoinBoard active={props.boardData.active} JoinGame={props.JoinGame} />
             <span className='footer'>By Chris DeHaan</span>
           </div>

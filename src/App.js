@@ -1,10 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import Peer from 'peerjs';
 import GetCookie from './GetCookie';
+import SendData from './SendData';
 
 import './index.css';
 import BoardScreen from './BoardScreen';
-import SendData from './SendData';
 import WelcomeScreen from './WelcomeScreen';
 import IncorporateUpdates from './IncorporateUpdates';
 
@@ -44,7 +44,6 @@ function App() {
   }, []);
 
 
-
   // Gets existing player name/key from cookie at startup
   useEffect(() => {
     const existingPlayerName = GetCookie("playerName");
@@ -58,7 +57,6 @@ function App() {
       setMyData(existingData => { return {...existingData, playerKey: existingPlayerKey}; });
     }
   }, []);
-
 
 
   // Creates peer at startup
@@ -90,6 +88,7 @@ function App() {
       heartbeatsSent.forEach(heartbeat => { clearInterval(heartbeat); });
     }
   }, [competitors]);
+
 
   // Return heartbeats to all competitors
   useEffect(() => {
@@ -168,14 +167,13 @@ function App() {
   }, [boardData, competitors]);
 
 
+  // Calls "IncorporateUpdates" to calculate new board state given some updates
   function HandleUpdates(updates) {
     setBoardData(oldBoardData => {
       const newBoardData = IncorporateUpdates(updates, oldBoardData);
       return (newBoardData ? newBoardData : oldBoardData);
     })
   }
-
-
 
 
   // Set peer data receive event.
@@ -196,8 +194,6 @@ function App() {
   //}
 
 
-
-
   // Set peer connection event. Will send current board data right away, then listen for updates.
   useEffect(() => {
 
@@ -209,7 +205,6 @@ function App() {
   }, [myData.peer, PeerConnected]);
 
 
-
   // Send updates (tile clicks) to all other players
   function BroadcastUpdates(localUpdates) {
     if(localUpdates && localUpdates.length === 0) { return; }
@@ -218,52 +213,6 @@ function App() {
     }
     HandleUpdates(localUpdates);
     localUpdates = [];
-  }
-
-
-  async function GenerateBoard(boardSettings) {
-
-    // If Peerjs is still connecting, try again in a little while
-    if(myData.peerId === null) {
-      setTimeout(() => {
-        GenerateBoard(boardSettings);
-        console.log("Please come again");
-      }, 500);
-      return;
-    }
-
-    // If some data is missing, abort
-    if(!boardSettings.mines || !boardSettings.height || !boardSettings.width) { return; }
-
-    // If more mines than spaces, abort
-    if(boardSettings.mines >= boardSettings.height * boardSettings.width) { return; }
-
-
-    const newBoardData = {};
-
-    newBoardData.board = boardSettings;
-
-    newBoardData.player = {
-      peerId: myData.peerId,
-      name: myData.name,
-      playerKey: GetCookie("playerKey"),       // Will be null for new players
-      playerSecret: GetCookie("playerSecret")  // Will be null for new players
-    }
-
-    //const createBoardResponse = JSON.parse(await SendData("CreateBoard.php", newBoardData));
-    const reply = await SendData("CreateBoard.php", newBoardData);
-    const createBoardResponse = JSON.parse(reply);
-    createBoardResponse.board.active = true
-    console.log(createBoardResponse);
-
-    setBoardData(createBoardResponse.board);
-
-    setMyData(existingPlayerData => { return {...existingPlayerData, ...createBoardResponse.player}; });
-
-    let cookieDate = new Date();
-    cookieDate.setMonth(cookieDate.getMonth()+1);
-    if(createBoardResponse.player.playerKey) { document.cookie = `playerKey=${createBoardResponse.player.playerKey}; samesite=lax; expires=${cookieDate.toUTCString()}`; }
-    if(createBoardResponse.player.secret)    { document.cookie = `playerSecret=${createBoardResponse.player.secret}; samesite=lax; expires=${cookieDate.toUTCString()}`; }
   }
 
 
@@ -397,7 +346,7 @@ function App() {
 
   return (
     <>
-    <WelcomeScreen boardData={boardData} myData={myData} competitors={competitors} setMyData={setMyData} GenerateBoard={GenerateBoard} JoinGame={JoinGame} />
+    <WelcomeScreen boardData={boardData} myData={myData} competitors={competitors} setMyData={setMyData} setBoardData={setBoardData} JoinGame={JoinGame} />
     <BoardScreen   boardData={boardData} myData={myData} competitors={competitors} setMyData={setMyData} BroadcastUpdates={BroadcastUpdates} />
     <div className='Debug'>Messages:</div>
     </>
