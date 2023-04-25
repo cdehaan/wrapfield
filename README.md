@@ -2,4 +2,4 @@
 
 Multiplayer Minesweeper with board wraparound.
 
-Try it at: www.wrapfield.com
+Try it at: wrapfield.com
