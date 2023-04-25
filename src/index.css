@@ -38,6 +38,8 @@ body {
   background: #fff;
   display: flex;
   justify-content: center;
+  background-image: linear-gradient(rgba(255,255,255,0.75), rgba(255,255,255,0.75)), url(hills.jpg);
+  background-image: url(hills.jpg);
 }
 
 input[type='checkbox'] {
@@ -51,8 +53,6 @@ input[type='checkbox'] {
   align-items: center;
   flex-direction: column;
   justify-content: center;
-  background-image: linear-gradient(rgba(255,255,255,0.75), rgba(255,255,255,0.75)), url(hills.jpg);
-  background-image: url(hills.jpg);
 }
 /*
 @media only screen and (orientation: landscape) {
@@ -246,7 +246,6 @@ div.logo {
 .BoardLayer {
   height: calc(var(--truevh) * 100);
   width: calc(var(--truevw) * 100);
-  background-image: url(hills.jpg);
   display: flex;
   flex-direction: column;
   justify-items: center;
