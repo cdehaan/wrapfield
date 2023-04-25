@@ -86,6 +86,7 @@ span.subtitle {
 
 span.footer {
   font-size: 0.8rem;
+  text-decoration: underline;
 }
 
 div.logo {
