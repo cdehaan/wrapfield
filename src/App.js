@@ -23,7 +23,7 @@ function App() {
   });
   const [myData,      setMyData]      = useState({name: GetCookie("playerName") || "Anonymous", active: false, peerId: null, peer: null});
   const [competitors, setCompetitors] = useState([]);
-  const [heartbeats,  setHeartbeats]  = useState(null)
+  const [heartbeat,   setHeartbeat]   = useState(null)
 
 
   // Handle window resize
@@ -100,16 +100,18 @@ function App() {
   }, [competitors])
 
 
-  // Send heartbeats to all competitors
+  // Setup a heartbeat to all competitors
   useEffect(() => {
     const heartbeatsSent = [];
-    competitors.forEach(competitor => {
+    competitors.forEach((competitor, index) => {
       heartbeatsSent.push(setInterval(() => {
-        competitor.conn.send({heartbeat : {
-          stage: 1,
-          playerKey: myData.playerKey
-        }});
-        //console.log("Heartbeat stage 1 sent"); // ok
+        setTimeout(() => {
+          competitor.conn.send({heartbeat : {
+            stage: 1,
+            playerKey: myData.playerKey
+          }});
+          //console.log("Heartbeat stage 1 sent"); // ok            
+        }, index*100); // Stagger the heartbeats a little
       }, 3000));
     });
     return () => {
@@ -118,10 +120,10 @@ function App() {
   }, [competitors]);
 
 
-  // Return heartbeats to all competitors
+  // Return a heartbeat sent by a competitor
   useEffect(() => {
-    if(!heartbeats) { return; }
-    const competitor = competitors.find(comp => comp.playerKey === heartbeats.playerKey);
+    if(!heartbeat) { return; }
+    const competitor = competitors.find(comp => comp.playerKey === heartbeat.playerKey);
     if(competitor) {
       competitor.conn.send({heartbeat : {
         stage: 2,
@@ -131,7 +133,7 @@ function App() {
     } else {
       console.log("Heartbeat could not be returned");
     }
-  }, [heartbeats, competitors]);
+  }, [heartbeat, competitors]);
 
 
   // Read message from another player: text, competitor data, quantum board updates, full board data, or heartbeat
@@ -183,7 +185,7 @@ function App() {
       //console.log("Heartbeat stage 1 received:"); // ok
       //console.log(heartbeat); // ok
         if(heartbeat.stage === 1) {
-          setHeartbeats(heartbeat);
+          setHeartbeat(heartbeat);
         }
   
         if (heartbeat.stage === 2) {

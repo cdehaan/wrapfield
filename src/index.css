@@ -419,3 +419,13 @@ div.NewGameButton {
   width: 0;
   overflow: hidden;
 }
+
+.GreenFlash {
+  animation: color-change 0.5s;
+}
+
+@keyframes color-change {
+  0% { color: #000; }
+  50% { color: #080; }
+  100% { color: #000; }
+}
