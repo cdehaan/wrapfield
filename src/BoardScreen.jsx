@@ -8,12 +8,9 @@ function BoardScreen(props) {
 
     return (
         <div className="BoardLayer">
-            <div className='Header'>
-                <Scoreboard boardData={props.boardData} competitors={props.competitors} myData={props.myData} setMyData={props.setMyData}/>
-            </div>
+            <Scoreboard boardData={props.boardData} competitors={props.competitors} myData={props.myData} setMyData={props.setMyData}/>
             <PlayField boardData={props.boardData} myData={props.myData} BroadcastUpdates={props.BroadcastUpdates} />
         </div>
-
     )
 }
 

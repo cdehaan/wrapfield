@@ -221,12 +221,10 @@ function App() {
       ProcessMessage(data);
     });
   }, [ProcessMessage]);
-  //}
 
 
   // Set peer connection event. Will send current board data right away, then listen for updates.
   useEffect(() => {
-
     const peer = myData.peer;
     if(peer) {
       peer.removeAllListeners("connection");
