@@ -14,6 +14,20 @@ function PlayField(props) {
   const wrapfield = boardData.wrapfield;
   const myData = props.myData;
 
+  const remainingFlags = !boardData.cells ? 0 : boardData.cells.reduce((rowsSum, row) => {
+    return rowsSum + row.reduce((cellsSum, cell) => {
+      return cellsSum + ((cell.state === 'm') ? 1 : 0) - ((cell.state === 'd') ? 1 : 0);
+    }, 0);
+  }, 0);
+
+  const remainingSafe = !boardData.cells ? 0 : boardData.cells.reduce((rowsSum, row) => {
+    return rowsSum + row.reduce((cellsSum, cell) => {
+      return cellsSum + ((cell.state === 's') ? 1 : 0) + ((cell.state === 'd') ? 1 : 0);
+    }, 0);
+  }, 0);
+
+  const gameComplete = remainingSafe === 0 && remainingFlags === 0;
+
   let localUpdates = [];
 
   function GetNeighbours(cell) {
@@ -44,6 +58,9 @@ function PlayField(props) {
     const cell = boardData.cells[tileY][tileX];
     const cellOwner = cell.owner;
     const cellState = cell.state;
+
+    // Can't right click when the game is done
+    if(gameComplete === true) { return }
 
     // Can't right click cleared/exploded tiles
     if(cellState === "c" || cellState === "e") { return; }
@@ -87,6 +104,9 @@ function PlayField(props) {
     const cell = boardData.cells[tileY][tileX];
     const cellState = cell.state;
 
+    // Can't double click when the game is done
+    if(gameComplete === true) { return }
+
     // Can only double click clear tiles
     if(cellState !== "c") { return; }
 
@@ -99,6 +119,9 @@ function PlayField(props) {
   }
 
   function TileClicked(event) {
+    // Can't clear a tile when the game is done
+    if(gameComplete === true) { return }
+
     const tile = event.target;
     const tileY = parseInt(tile.getAttribute("y"));
     const tileX = parseInt(tile.getAttribute("x"));
@@ -200,20 +223,6 @@ function PlayField(props) {
   function NewGame() {
     
   }
-
-  const remainingFlags = !boardData.cells ? 0 : boardData.cells.reduce((rowsSum, row) => {
-    return rowsSum + row.reduce((cellsSum, cell) => {
-      return cellsSum + ((cell.state === 'm') ? 1 : 0) - ((cell.state === 'd') ? 1 : 0);
-    }, 0);
-  }, 0);
-
-  const remainingSafe = !boardData.cells ? 0 : boardData.cells.reduce((rowsSum, row) => {
-    return rowsSum + row.reduce((cellsSum, cell) => {
-      return cellsSum + ((cell.state === 's') ? 1 : 0) + ((cell.state === 'd') ? 1 : 0);
-    }, 0);
-  }, 0);
-
-  const gameComplete = remainingSafe === 0 && remainingFlags === 0;
 
   const gameStateDiv = gameComplete ? <>🎉<div className='NewGameButton' onClick={NewGame}>New Game</div></> : `🚩: ${remainingFlags}`
 
