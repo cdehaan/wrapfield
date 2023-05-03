@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import Peer from 'peerjs';
 import GetCookie from './GetCookie';
-//import SendData from './SendData';
+import IncorporatePing from './IncorporatePing.mjs';
 
 import './index.css';
 import BoardScreen from './BoardScreen';
@@ -23,7 +23,7 @@ function App() {
   });
   const [myData,      setMyData]      = useState({name: GetCookie("playerName") || "Anonymous", active: false, peerId: null, peer: null});
   const [competitors, setCompetitors] = useState([]);
-  const [pings,       setPings]       = useState([]) // {playerKey: 1, sent: time, received: time, ping: time, skew: percent}
+  const [pings,       setPings]       = useState([]) // {playerKey: 1, sent: time, bounced: time, ping: time, skew: percent}
   const [heartbeat,   setHeartbeat]   = useState(null)
 
 
@@ -83,20 +83,21 @@ function App() {
       competitor.conn.on('open', () => {
         competitor.activeConn = true;
         console.log(`Connected as guest to player #${competitor.playerKey}`);
-        competitor.conn.on('data', function(data) {
-          //console.log('Received data as guest.');
-          ProcessMessage(data);
-        });
         competitor.conn.send("Hello from player #" + myData.playerKey);
+
+        // Received data as guest
+        competitor.conn.on('data', function(data) { ProcessMessage(data); });
+
+        // Send our data to them
         setTimeout(() => {
           competitor.conn.send({competitor: {
           playerKey: myData.playerKey,
           name: myData.name,
           peerId: myData.peerId,
           requestBoard: true,
-          time: Date.now()
+          time: Date.now() // Currently unused
           }});
-        }, 500);
+        }, 50);
       });
     })
   }, [competitors])
@@ -107,7 +108,7 @@ function App() {
     const heartbeatsSent = [];
     competitors.forEach((competitor, index) => {
 
-      // Send a heartbeat every 3 seconds
+      // Send a heartbeat stage 1 every 3 seconds
       heartbeatsSent.push(setInterval(() => {
         setTimeout(() => {
           const now = Date.now()
@@ -116,25 +117,21 @@ function App() {
           competitor.conn.send({heartbeat : {
             stage: 1,
             playerKey: myData.playerKey,
-            time: now
+            sent: now
           }});
 
-          // Make a record of when we sent it to calculate ping later
-          setPings(oldPings => {
-            const newPings = oldPings
-            if(!newPings) return [{playerKey: competitor.playerKey, sent: Date.now()}]
 
-            const competitorPing = newPings.find(ping => {return ping.playerKey === competitor.playerKey})
-            if(competitorPing) competitorPing.sent = now
-            return newPings
+          // Make a record of when we sent it to calculate ping later
+          setPings(currentPings => {
+            const pingEvent = {playerKey: competitor.playerKey, sent: Date.now()}
+            return IncorporatePing(currentPings, pingEvent)
           })
 
-          //console.log("Heartbeat stage 1 sent"); // ok            
         }, index*100); // Stagger the heartbeats a little
       }, 3000));
     });
 
-    return () => { heartbeatsSent.forEach(heartbeat => { clearInterval(heartbeat); }); }
+    return () => { heartbeatsSent.forEach(heartbeat => { clearInterval(heartbeat) }) }
 
   }, [competitors]);
 
@@ -148,9 +145,8 @@ function App() {
       competitor.conn.send({heartbeat : {
         stage: 2,
         playerKey: myData.playerKey,
-        time: Date.now()
+        bounced: Date.now()
       }});
-      //console.log("Heartbeat stage 2 sent:"); // ok
     } else {
       console.log("Heartbeat could not be returned");
     }
@@ -163,6 +159,7 @@ function App() {
     if(typeof(data) !== "object") { console.log("Data: " + data);    return; }
     if(data === null) { console.log("Got an empty data message.");   return; }
 
+    // A new competitor joined and is sending us their data. There should already be a placeholder from their connect event
     const newCompetitor = data.competitor;
     if(newCompetitor) {
       console.log("New competitor data received");
@@ -182,20 +179,6 @@ function App() {
 
         return newCompetitors;
       });
-
-      setPings(oldPings => {
-        const newPings = oldPings
-        if(!newPings) return [{playerKey: newCompetitor.playerKey, received: Date.now()}]
-
-        const currentPing = Date.now() - newCompetitor.time
-        const pingEntry = newPings.find(ping => { return ping.playerKey === newCompetitor.playerKey }) // Likely not found, unless its a reconnecting player
-        if(!pingEntry) {
-          newPings.push({playerKey: newCompetitor.playerKey, received: newCompetitor.time, ping: currentPing})
-          return newPings
-        }
-        pingEntry.received = newCompetitor.time
-        pingEntry.ping = currentPing
-      })
     }
 
     const remoteUpdates = data.updates;
@@ -224,29 +207,9 @@ function App() {
 
       // Heartbeat stage 2 received
       if (heartbeat.stage === 2) {
-        setPings(oldPings => {
-          const newPings = oldPings
-          if(!newPings) return [{playerKey: heartbeat.playerKey, received: Date.now()}]
-
-          const pingEntry = newPings.find(ping => { return ping.playerKey === heartbeat.playerKey }) // Find the player's ping info
-          if(!pingEntry) return newPings // If we can't find it, quit
-          if(!pingEntry.sent) return newPings // If we don't know when ping was sent, quit
-
-          pingEntry.received = Date.now() // Save when we received ping response
-
-          const currentPing = pingEntry.received - pingEntry.sent // Calculate how long it took roundtrip
-          const returnTrip  = pingEntry.received - heartbeat.time // Calculate how long it took to come back
-          const currentSkew = Math.round(100 * (returnTrip / currentPing))/100 // What percent of the time was spent coming back
-
-          if(!pingEntry.ping) pingEntry.ping = currentPing // If there's no current ping value, set it
-          pingEntry.ping = pingEntry.ping * 0.4 + currentPing * 0.6 // Keep a rolling average, will forget a minute lag after 10 seconds
-          pingEntry.ping = Math.round(pingEntry.ping * 100) / 100
-
-          if(!pingEntry.skew) pingEntry.skew = currentSkew // If there's no current skew value, set it to 50%
-          pingEntry.skew = pingEntry.skew * 0.4 + currentSkew * 0.6
-          pingEntry.skew = Math.round(pingEntry.skew * 100) / 100
-
-          return newPings
+        setPings(currentPings => {
+          const pingEvent = {playerKey: heartbeat.playerKey, bounced: heartbeat.bounced, received: Date.now()}
+          return IncorporatePing(currentPings, pingEvent)
         })
       }  
     }
