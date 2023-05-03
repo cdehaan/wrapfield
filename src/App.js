@@ -23,6 +23,7 @@ function App() {
   });
   const [myData,      setMyData]      = useState({name: GetCookie("playerName") || "Anonymous", active: false, peerId: null, peer: null});
   const [competitors, setCompetitors] = useState([]);
+  const [pings,       setPings]       = useState([]) // {playerKey: 1, sent: time, received: time, ping: time, skew: percent}
   const [heartbeat,   setHeartbeat]   = useState(null)
 
 
@@ -92,7 +93,8 @@ function App() {
           playerKey: myData.playerKey,
           name: myData.name,
           peerId: myData.peerId,
-          requestBoard: true
+          requestBoard: true,
+          time: Date.now()
           }});
         }, 500);
       });
@@ -104,19 +106,36 @@ function App() {
   useEffect(() => {
     const heartbeatsSent = [];
     competitors.forEach((competitor, index) => {
+
+      // Send a heartbeat every 3 seconds
       heartbeatsSent.push(setInterval(() => {
         setTimeout(() => {
+          const now = Date.now()
+
+          // The actual sending of the heartbeat
           competitor.conn.send({heartbeat : {
             stage: 1,
-            playerKey: myData.playerKey
+            playerKey: myData.playerKey,
+            time: now
           }});
+
+          // Make a record of when we sent it to calculate ping later
+          setPings(oldPings => {
+            const newPings = oldPings
+            if(!newPings) return [{playerKey: competitor.playerKey, sent: Date.now()}]
+
+            const competitorPing = newPings.find(ping => {return ping.playerKey === competitor.playerKey})
+            if(competitorPing) competitorPing.sent = now
+            return newPings
+          })
+
           //console.log("Heartbeat stage 1 sent"); // ok            
         }, index*100); // Stagger the heartbeats a little
       }, 3000));
     });
-    return () => {
-      heartbeatsSent.forEach(heartbeat => { clearInterval(heartbeat); });
-    }
+
+    return () => { heartbeatsSent.forEach(heartbeat => { clearInterval(heartbeat); }); }
+
   }, [competitors]);
 
 
@@ -124,10 +143,12 @@ function App() {
   useEffect(() => {
     if(!heartbeat) { return; }
     const competitor = competitors.find(comp => comp.playerKey === heartbeat.playerKey);
+
     if(competitor) {
       competitor.conn.send({heartbeat : {
         stage: 2,
-        playerKey: myData.playerKey
+        playerKey: myData.playerKey,
+        time: Date.now()
       }});
       //console.log("Heartbeat stage 2 sent:"); // ok
     } else {
@@ -161,6 +182,20 @@ function App() {
 
         return newCompetitors;
       });
+
+      setPings(oldPings => {
+        const newPings = oldPings
+        if(!newPings) return [{playerKey: newCompetitor.playerKey, received: Date.now()}]
+
+        const currentPing = Date.now() - newCompetitor.time
+        const pingEntry = newPings.find(ping => { return ping.playerKey === newCompetitor.playerKey }) // Likely not found, unless its a reconnecting player
+        if(!pingEntry) {
+          newPings.push({playerKey: newCompetitor.playerKey, received: newCompetitor.time, ping: currentPing})
+          return newPings
+        }
+        pingEntry.received = newCompetitor.time
+        pingEntry.ping = currentPing
+      })
     }
 
     const remoteUpdates = data.updates;
@@ -171,7 +206,7 @@ function App() {
 
     const board = data.board;
     if(board) {
-      console.log("Startup board data received");
+      console.log("Entire board data received");
       setBoardData(oldBoardData => {
         const newBoardData = {...oldBoardData, ...board};
         if(newBoardData.start) { newBoardData.start = new Date(newBoardData.start); }
@@ -182,16 +217,38 @@ function App() {
 
     const heartbeat = data.heartbeat; // {stage: 1, playerKey: 140}
     if(heartbeat) {
-      //console.log("Heartbeat stage 1 received:"); // ok
-      //console.log(heartbeat); // ok
-        if(heartbeat.stage === 1) {
-          setHeartbeat(heartbeat);
-        }
-  
-        if (heartbeat.stage === 2) {
-          //console.log("Heartbeat stage 2 received:");
-          //console.log(heartbeat);  
-        }  
+      // Heartbeat stage 1 received
+      if(heartbeat.stage === 1) {
+        setHeartbeat(heartbeat);
+      }
+
+      // Heartbeat stage 2 received
+      if (heartbeat.stage === 2) {
+        setPings(oldPings => {
+          const newPings = oldPings
+          if(!newPings) return [{playerKey: heartbeat.playerKey, received: Date.now()}]
+
+          const pingEntry = newPings.find(ping => { return ping.playerKey === heartbeat.playerKey }) // Find the player's ping info
+          if(!pingEntry) return newPings // If we can't find it, quit
+          if(!pingEntry.sent) return newPings // If we don't know when ping was sent, quit
+
+          pingEntry.received = Date.now() // Save when we received ping response
+
+          const currentPing = pingEntry.received - pingEntry.sent // Calculate how long it took roundtrip
+          const returnTrip  = pingEntry.received - heartbeat.time // Calculate how long it took to come back
+          const currentSkew = Math.round(100 * (returnTrip / currentPing))/100 // What percent of the time was spent coming back
+
+          if(!pingEntry.ping) pingEntry.ping = currentPing // If there's no current ping value, set it
+          pingEntry.ping = pingEntry.ping * 0.4 + currentPing * 0.6 // Keep a rolling average, will forget a minute lag after 10 seconds
+          pingEntry.ping = Math.round(pingEntry.ping * 100) / 100
+
+          if(!pingEntry.skew) pingEntry.skew = currentSkew // If there's no current skew value, set it to 50%
+          pingEntry.skew = pingEntry.skew * 0.4 + currentSkew * 0.6
+          pingEntry.skew = Math.round(pingEntry.skew * 100) / 100
+
+          return newPings
+        })
+      }  
     }
 
   }, [boardData, competitors]);
@@ -208,7 +265,6 @@ function App() {
 
   // Set peer data receive event.
   const PeerConnected = useCallback((conn) => {
-  //function PeerConnected(conn) {
     console.log('Connected as host to: ' + conn.peer);
 
     // A guest just connected to us. We don't know anything about them yet except their conn (which has their peerId)
