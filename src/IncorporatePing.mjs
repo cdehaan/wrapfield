@@ -15,6 +15,8 @@ function IncorporatePing(currentPings, pingEvent) {
     // A ping was just sent. Recoring the send time.
     if(pingEvent.sent) {
 
+        // TODO timeout for dead heartbeat can go here
+
         // First ping to this player
         if(!pingEntry) {
             const newEntry = {playerKey: playerKey, sent: pingEvent.sent}
@@ -33,6 +35,8 @@ function IncorporatePing(currentPings, pingEvent) {
 
     // If a ping has come back to us
     if(pingEvent.bounced && pingEvent.received) {
+
+        // TODO unsetting dead heartbeat timeout should go here
 
         // If we have no existing sent time data for this player, this new time data is useless
         if(!pingEntry)      { return currentPings }
