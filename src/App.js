@@ -241,13 +241,22 @@ function App() {
   }, [boardData, competitors]);
 
 
-  // Calls "IncorporateUpdates" to calculate new board state given some updates
+  // Calls "IncorporateUpdates" if new cell data comes to calculate new board state given some updates
+  // Saves board data if board data comes
   function HandleUpdates(updates) {
     const cellUpdates = updates.cellUpdates
     if(cellUpdates) {
       setBoardData(oldBoardData => {
         const newBoardData = IncorporateUpdates(cellUpdates, oldBoardData);
         return (newBoardData ? newBoardData : oldBoardData);
+      })
+    }
+
+    const boardUpdates = updates.boardUpdates
+    if(boardUpdates) {
+      setBoardData(oldBoardData => {
+        const newBoardData = {...oldBoardData, ...boardUpdates}
+        return newBoardData
       })
     }
   }
