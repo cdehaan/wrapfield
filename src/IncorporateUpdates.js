@@ -1,22 +1,22 @@
-  function IncorporateUpdates(updates, oldBoardData) {
+  function IncorporateUpdates(cellUpdates, oldBoardData) {
     const newBoardData = {...oldBoardData};
     if(!oldBoardData.start) { newBoardData.start = new Date(); }
 
-    updates.forEach(update => {
+    cellUpdates.forEach(cellUpdate => {
         // Missing or malformed data, ignore the update (null is not considered "missing")
         //if(update.state === undefined || !update.owner.every(element => {return typeof element === 'number';}) || update.scored === undefined || !Number.isInteger(update.y) || !Number.isInteger(update.x)) { return; }
-        if(update.state === undefined || (!Number.isInteger(update.owner) && update.owner !== null) || update.scored === undefined || !Number.isInteger(update.y) || !Number.isInteger(update.x)) { return null; }
+        if(cellUpdate.state === undefined || (!Number.isInteger(cellUpdate.owner) && cellUpdate.owner !== null) || cellUpdate.scored === undefined || !Number.isInteger(cellUpdate.y) || !Number.isInteger(cellUpdate.x)) { return null; }
 
-        const currentCell = newBoardData.cells[update.y][update.x];
+        const currentCell = newBoardData.cells[cellUpdate.y][cellUpdate.x];
         if(!currentCell) { return; }
 
         const existingState  = currentCell.state;
         const existingOwners = currentCell.owner;
         // const existingScored = currentCell.scored; // Never used
 
-        const updateState  = update.state.toString().substring(0,1);
-        const updateOwner  = update.owner;
-        const updateScored = !!update.scored;
+        const updateState  = cellUpdate.state.toString().substring(0,1);
+        const updateOwner  = cellUpdate.owner;
+        const updateScored = !!cellUpdate.scored;
 
         const currentOwner = (existingOwners && existingOwners.includes(updateOwner));
 
@@ -54,7 +54,7 @@
                 break;
                     
                 default:
-                console.log("Can't incorporate update:" + update);
+                console.log("Can't incorporate update:" + cellUpdate);
                 break;
             }
             break; // updateState = s
@@ -76,7 +76,7 @@
                 currentCell.owner  = [updateOwner];
                 break;              
                 default:
-                console.log("Can't incorporate update:" + update);
+                console.log("Can't incorporate update:" + cellUpdate);
                 break;
             }
             break; // updateState = c
@@ -100,7 +100,7 @@
                 break;
             
                 default:
-                console.log("Can't incorporate update:" + update);
+                console.log("Can't incorporate update:" + cellUpdate);
                 break;
             }
             break;
@@ -135,7 +135,7 @@
                 break;
                     
                 default:
-                console.log("Can't incorporate update:" + update);
+                console.log("Can't incorporate update:" + cellUpdate);
                 break;
             }
             break;
@@ -157,7 +157,7 @@
                 currentCell.owner  = [updateOwner];
                 break;              
                 default:
-                console.log("Can't incorporate update:" + update);
+                console.log("Can't incorporate update:" + cellUpdate);
                 break;
             }
 
@@ -182,13 +182,13 @@
                 break;
             
                 default:
-                console.log("Can't incorporate update:" + update);
+                console.log("Can't incorporate update:" + cellUpdate);
                 break;
             }
             break;
         
             default:
-            console.log("Can't incorporate update:" + update);
+            console.log("Can't incorporate update:" + cellUpdate);
             break;
         }
     });

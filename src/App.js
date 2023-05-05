@@ -19,7 +19,8 @@ function App() {
     wrapfield: false,
     start: null,
     end: null,
-    active: false
+    active: false,
+    stale: false
   });
   const [myData,      setMyData]      = useState({name: GetCookie("playerName") || "Anonymous", active: false, peerId: null, peer: null});
   const [competitors, setCompetitors] = useState([]);
@@ -86,7 +87,7 @@ function App() {
         competitor.conn.send("Hello from player #" + myData.playerKey);
 
         // Received data as guest
-        competitor.conn.on('data', function(data) { ProcessMessage(data); });
+        competitor.conn.on('data', function(data) { ProcessMessage(data, competitor.playerKey); });
 
         // Send our data to them
         setTimeout(() => {
@@ -153,8 +154,8 @@ function App() {
   }, [heartbeat, competitors]);
 
 
-  // Read message from another player: text, competitor data, quantum board updates, full board data, or heartbeat
-  const ProcessMessage = useCallback((data) => {
+  // Read message from another player: text, competitor data, quantum board updates, full board data, heartbeat, or event
+  const ProcessMessage = useCallback((data, competitorKey) => {
     if(typeof(data) === "string") { console.log("Message: " + data); return; }
     if(typeof(data) !== "object") { console.log("Data: " + data);    return; }
     if(data === null) { console.log("Got an empty data message.");   return; }
@@ -174,17 +175,22 @@ function App() {
           newCompetitors[competitorToUpdate].conn.send({board: boardData});  
         }
 
+        newCompetitors[competitorToUpdate].conn.removeAllListeners('data');
+        newCompetitors[competitorToUpdate].conn.on('data', function(data) {
+          ProcessMessage(data, newCompetitor.playerKey);
+        });
+
         // A reconnecting player will have an old entry in Competitors array. Filter out any competitor with the same player key and different Peer ID
         newCompetitors = newCompetitors.filter(competitor => { return (competitor.peerId === newCompetitor.peerId || competitor.playerKey !== newCompetitor.playerKey); })
 
         return newCompetitors;
-      });
+      });  
     }
 
-    const remoteUpdates = data.updates;
-    if(remoteUpdates) {
+    const updates = data.updates;
+    if(updates) {
       console.log("Remote updates received");
-      HandleUpdates(remoteUpdates);
+      HandleUpdates(updates);
     }
 
     const board = data.board;
@@ -192,14 +198,16 @@ function App() {
       console.log("Entire board data received");
       setBoardData(oldBoardData => {
         const newBoardData = {...oldBoardData, ...board};
-        if(newBoardData.start) { newBoardData.start = new Date(newBoardData.start); }
-        if(newBoardData.end)   { newBoardData.end   = new Date(newBoardData.end);   }
+        newBoardData.start = null;  if(newBoardData.start) { newBoardData.start = new Date(newBoardData.start); }
+        newBoardData.end = null;    if(newBoardData.end)   { newBoardData.end   = new Date(newBoardData.end);   }
         return newBoardData;
       });
     }
 
     const heartbeat = data.heartbeat; // {stage: 1, playerKey: 140}
     if(heartbeat) {
+      if(heartbeat.playerKey !== competitorKey) { console.log("Warning: Player Key in heartbeat and Player key in connection object don't match.") }
+
       // Heartbeat stage 1 received
       if(heartbeat.stage === 1) {
         setHeartbeat(heartbeat);
@@ -214,15 +222,34 @@ function App() {
       }  
     }
 
+    const event = data.event
+    if(event) {
+      switch (event.type) {
+        case "New Game":
+          setBoardData(oldBoardData => {
+            oldBoardData.stale = true
+            return oldBoardData;
+          });
+          break;
+      
+        default:
+          console.log("Warning: Unknown event received")
+          break;
+      }
+    }
+
   }, [boardData, competitors]);
 
 
   // Calls "IncorporateUpdates" to calculate new board state given some updates
   function HandleUpdates(updates) {
-    setBoardData(oldBoardData => {
-      const newBoardData = IncorporateUpdates(updates, oldBoardData);
-      return (newBoardData ? newBoardData : oldBoardData);
-    })
+    const cellUpdates = updates.cellUpdates
+    if(cellUpdates) {
+      setBoardData(oldBoardData => {
+        const newBoardData = IncorporateUpdates(cellUpdates, oldBoardData);
+        return (newBoardData ? newBoardData : oldBoardData);
+      })
+    }
   }
 
 
@@ -234,9 +261,9 @@ function App() {
     const competitorPlaceholder = {conn: conn, peerId: conn.peer, playerKey: null, name: null, active: false};
     setCompetitors(oldCompetitors => { return [...oldCompetitors, competitorPlaceholder] });
 
+    // Received data as host.
     conn.removeAllListeners('data');
     conn.on('data', function(data) {
-      //console.log('Received data as host.'); // ok
       ProcessMessage(data);
     });
   }, [ProcessMessage]);
@@ -252,21 +279,10 @@ function App() {
   }, [myData.peer, PeerConnected]);
 
 
-  // Send updates (tile clicks) to all other players
-  function BroadcastUpdates(localUpdates) {
-    if(localUpdates && localUpdates.length === 0) { return; }
-    for(const competitor of competitors) {
-      competitor.conn.send({updates: localUpdates});
-    }
-    HandleUpdates(localUpdates);
-    localUpdates = [];
-  }
-
-
   return (
     <>
     <WelcomeScreen boardData={boardData} myData={myData} competitors={competitors} setMyData={setMyData} setBoardData={setBoardData} setCompetitors={setCompetitors} />
-    <BoardScreen   boardData={boardData} myData={myData} competitors={competitors} setMyData={setMyData} BroadcastUpdates={BroadcastUpdates} />
+    <BoardScreen   boardData={boardData} myData={myData} competitors={competitors} setMyData={setMyData} HandleUpdates={HandleUpdates}/>
     <div className='Debug'>Messages:</div>
     </>
   );

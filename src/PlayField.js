@@ -6,8 +6,12 @@ import Timer from './Timer';
 
 function PlayField(props) {
   const [displayQR, setDisplayQR] = useState(false);
+
+  const competitors = props.competitors
+
   const boardData = props.boardData;
-  if(!boardData.cells) { return(""); }
+  if(!boardData.cells) { return null; }
+
   const height = boardData.cells.length || 10;
   const width  = boardData.cells[0].length || height || 10;
   const gameboardStyle = { gridTemplateRows: `repeat(${height}, 1fr)`, gridTemplateColumns: `repeat(${width}, 1fr)`};
@@ -92,7 +96,7 @@ function PlayField(props) {
       localUpdates.push(oneUpdate);
     }
 
-    props.BroadcastUpdates(localUpdates);
+    BroadcastUpdates(localUpdates);
     return false;
   }
 
@@ -115,7 +119,7 @@ function PlayField(props) {
 
     const neighbourCells = GetNeighbours(cell);
     neighbourCells.forEach(cell => { if(["s","m"].includes(cell.state)) {RevealCell(cell);} });
-    props.BroadcastUpdates(localUpdates);
+    BroadcastUpdates(localUpdates);
   }
 
   function TileClicked(event) {
@@ -190,7 +194,7 @@ function PlayField(props) {
       }
     }
 
-    props.BroadcastUpdates(localUpdates);
+    BroadcastUpdates(localUpdates);
   }
 
   function DeepClick(cell) {
@@ -220,9 +224,25 @@ function PlayField(props) {
     setDisplayQR(oldStatus => !oldStatus);
   }
 
-  function NewGame() {
-    
+  function NewGame() {    
+    for(const competitor of competitors) {
+      competitor.conn.send({event: {
+        type: "New Game",
+        time: Date.now()
+      }});
+    }
   }
+
+  // Send updates (tile clicks) to all other players
+  function BroadcastUpdates(localUpdates) {
+    if(!localUpdates || localUpdates.length === 0) { return; }
+    for(const competitor of competitors) {
+      competitor.conn.send({updates: {cellUpdates: localUpdates}});
+    }
+    props.HandleUpdates({cellUpdates: localUpdates});
+    localUpdates = [];
+  }
+
 
   const gameStateDiv = gameComplete ? <>🎉<div className='NewGameButton' onClick={NewGame}>New Game</div></> : `🚩: ${remainingFlags}`
 
