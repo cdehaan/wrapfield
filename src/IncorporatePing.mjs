@@ -19,7 +19,7 @@ function IncorporatePing(currentPings, pingEvent) {
 
         // First ping to this player
         if(!pingEntry) {
-            const newEntry = {playerKey: playerKey, sent: pingEvent.sent}
+            const newEntry = { playerKey: playerKey, sent: pingEvent.sent, sync: false }
             currentPings.push(newEntry)
             return currentPings
         }
@@ -59,9 +59,13 @@ function IncorporatePing(currentPings, pingEvent) {
         pingEntry.skew = pingEntry.skew * 0.4 + skew * 0.6
         pingEntry.skew = Math.round(pingEntry.skew * 100) / 100
 
+        const sync = (pingEntry.sent < pingEntry.bounced && pingEntry.bounced < pingEntry.received && (pingEntry.received - pingEntry.bounced) < 250)
+        if(sync) { pingEntry.sync = true }
         return currentPings
     }
 
+    // No changes were made, send back the original ping data
+    return currentPings
 }
 
 export default IncorporatePing
