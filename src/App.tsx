@@ -10,6 +10,28 @@ import IncorporateUpdates from './IncorporateUpdates';
 
 
 function App() {
+  type Player = {
+    name?: string,
+    playerKey?: number,
+    peerId?: string,
+    peer?: any,
+    conn?: any,
+    activeConn?: boolean,
+    secret?: string
+    active: boolean,
+  }
+
+  type Heartbeat = {
+    stage:number,
+    playerKey:number,
+    sent?: Date,
+    bounced?: Date,
+    received?: Date
+  }
+
+  const [myData,      setMyData]      = useState<Player>({name: GetCookie("playerName") || "Anonymous", active: false, peer: null});
+  const [competitors, setCompetitors] = useState<Player[]>([]);
+
   const [boardData, setBoardData] = useState({
     cells: null,
     hint: true,
@@ -22,8 +44,7 @@ function App() {
     active: false,
     stale: false
   });
-  const [myData,      setMyData]      = useState({name: GetCookie("playerName") || "Anonymous", active: false, peerId: null, peer: null});
-  const [competitors, setCompetitors] = useState([]);
+
   const [pings,       setPings]       = useState([]) // {playerKey: 1, sent: time, bounced: time, ping: time, skew: percent}
 
 
@@ -63,7 +84,7 @@ function App() {
 
   // Creates peer at startup
   useEffect(() => {
-    function PeerOpened(peerId) {  
+    function PeerOpened(peerId: string) {  
       console.log('My Peerjs id is: ' + peerId);
       setMyData(existingPlayerData => { return {...existingPlayerData, peerId: peerId, active: true}; });
     }
@@ -86,7 +107,7 @@ function App() {
         competitor.conn.send("Hello from player #" + myData.playerKey);
 
         // Received data as guest
-        competitor.conn.on('data', function(data) { ProcessMessage(data, competitor.playerKey); });
+        competitor.conn.on('data', function(data:any) { ProcessMessage(data, competitor.playerKey); });
 
         // Send our data to them
         setTimeout(() => {
@@ -105,7 +126,7 @@ function App() {
 
   // Setup a heartbeat to all competitors
   useEffect(() => {
-    const heartbeatsSent = [];
+    const heartbeatsSent:ReturnType<typeof setInterval>[] = [];
     competitors.forEach((competitor, index) => {
 
       // Send a heartbeat stage 1 every 3 seconds
@@ -137,7 +158,7 @@ function App() {
 
 
   // Return a heartbeat sent by a competitor
-  function ReturnHeartbeat(heartbeat) {
+  function ReturnHeartbeat(heartbeat:Heartbeat) {
     if(!heartbeat) { return; }
     const competitor = competitors.find(comp => comp.playerKey === heartbeat.playerKey);
 
@@ -154,7 +175,7 @@ function App() {
 
 
   // Read message from another player: text, competitor data, quantum board updates, full board data, heartbeat, or event
-  const ProcessMessage = useCallback((data, competitorKey) => {
+  const ProcessMessage = useCallback((data:any, competitorKey?:number) => {
     if(typeof(data) === "string") { console.log("Message: " + data); return; }
     if(typeof(data) !== "object") { console.log("Data: " + data);    return; }
     if(data === null) { console.log("Got an empty data message.");   return; }
@@ -175,7 +196,7 @@ function App() {
         }
 
         newCompetitors[competitorToUpdate].conn.removeAllListeners('data');
-        newCompetitors[competitorToUpdate].conn.on('data', function(data) {
+        newCompetitors[competitorToUpdate].conn.on('data', function(data:any) {
           ProcessMessage(data, newCompetitor.playerKey);
         });
 
@@ -203,7 +224,7 @@ function App() {
       });
     }
 
-    const heartbeat = data.heartbeat; // {stage: 1, playerKey: 140}
+    const heartbeat:Heartbeat = data.heartbeat; // {stage: 1, playerKey: 140}
     if(heartbeat) {
       if(heartbeat.playerKey !== competitorKey) { console.log("Warning: Player Key in heartbeat and Player key in connection object don't match.") }
 
@@ -242,7 +263,7 @@ function App() {
 
   // Calls "IncorporateUpdates" if new cell data comes to calculate new board state given some updates
   // Saves board data if board data comes
-  function HandleUpdates(updates) {
+  function HandleUpdates(updates:any) {
     const cellUpdates = updates.cellUpdates
     if(cellUpdates) {
       setBoardData(oldBoardData => {
@@ -262,16 +283,16 @@ function App() {
 
 
   // Set peer data receive event.
-  const PeerConnected = useCallback((conn) => {
+  const PeerConnected = useCallback((conn:any) => {
     console.log('Connected as host to: ' + conn.peer);
 
     // A guest just connected to us. We don't know anything about them yet except their conn (which has their peerId)
-    const competitorPlaceholder = {conn: conn, peerId: conn.peer, playerKey: null, name: null, active: false};
+    const competitorPlaceholder = {conn: conn, peerId: conn.peer, active: false};
     setCompetitors(oldCompetitors => { return [...oldCompetitors, competitorPlaceholder] });
 
     // Received data as host.
     conn.removeAllListeners('data');
-    conn.on('data', function(data) {
+    conn.on('data', function(data:any) {
       ProcessMessage(data);
     });
   }, [ProcessMessage]);
