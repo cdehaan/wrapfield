@@ -10,6 +10,19 @@ import IncorporateUpdates from './IncorporateUpdates';
 
 
 function App() {
+  type Board = {
+    cells: any,
+    hint: boolean,
+    key?: number,
+    safe: boolean,
+    secret?: string,
+    wrapfield: boolean,
+    start?: Date | null,
+    end?: Date | null,
+    active: boolean,
+    stale: boolean
+  }
+
   type Player = {
     name?: string,
     playerKey?: number,
@@ -17,8 +30,9 @@ function App() {
     peer?: any,
     conn?: any,
     activeConn?: boolean,
-    secret?: string
+    secret?: string,
     active: boolean,
+    requestBoard?: boolean
   }
 
   type Heartbeat = {
@@ -29,18 +43,22 @@ function App() {
     received?: Date
   }
 
+  type Message = null | string | {
+    competitor?:Player,
+    updates?: any,
+    board?: Board,
+    heartbeat: Heartbeat,
+    event: {type: string}
+  }
+
   const [myData,      setMyData]      = useState<Player>({name: GetCookie("playerName") || "Anonymous", active: false, peer: null});
   const [competitors, setCompetitors] = useState<Player[]>([]);
 
-  const [boardData, setBoardData] = useState({
+  const [boardData,   setBoardData]   = useState<Board>({
     cells: null,
     hint: true,
-    key: null,
-    safe: null,
-    secret: null,
+    safe: true,
     wrapfield: false,
-    start: null,
-    end: null,
     active: false,
     stale: false
   });
@@ -107,7 +125,7 @@ function App() {
         competitor.conn.send("Hello from player #" + myData.playerKey);
 
         // Received data as guest
-        competitor.conn.on('data', function(data:any) { ProcessMessage(data, competitor.playerKey); });
+        competitor.conn.on('data', function(data:Message) { ProcessMessage(data, competitor.playerKey); });
 
         // Send our data to them
         setTimeout(() => {
@@ -175,7 +193,7 @@ function App() {
 
 
   // Read message from another player: text, competitor data, quantum board updates, full board data, heartbeat, or event
-  const ProcessMessage = useCallback((data:any, competitorKey?:number) => {
+  const ProcessMessage = useCallback((data:Message, competitorKey?:number) => {
     if(typeof(data) === "string") { console.log("Message: " + data); return; }
     if(typeof(data) !== "object") { console.log("Data: " + data);    return; }
     if(data === null) { console.log("Got an empty data message.");   return; }
@@ -247,7 +265,7 @@ function App() {
       switch (event.type) {
         case "New Game":
           setBoardData(oldBoardData => {
-            oldBoardData.stale = true
+            if(oldBoardData) oldBoardData.stale = true
             return oldBoardData;
           });
           break;
