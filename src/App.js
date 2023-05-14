@@ -25,7 +25,6 @@ function App() {
   const [myData,      setMyData]      = useState({name: GetCookie("playerName") || "Anonymous", active: false, peerId: null, peer: null});
   const [competitors, setCompetitors] = useState([]);
   const [pings,       setPings]       = useState([]) // {playerKey: 1, sent: time, bounced: time, ping: time, skew: percent}
-  const [heartbeat,   setHeartbeat]   = useState(null)
 
 
   // Handle window resize
@@ -138,7 +137,7 @@ function App() {
 
 
   // Return a heartbeat sent by a competitor
-  useEffect(() => {
+  function ReturnHeartbeat(heartbeat) {
     if(!heartbeat) { return; }
     const competitor = competitors.find(comp => comp.playerKey === heartbeat.playerKey);
 
@@ -151,7 +150,7 @@ function App() {
     } else {
       console.log("Heartbeat could not be returned");
     }
-  }, [heartbeat, competitors]);
+  }
 
 
   // Read message from another player: text, competitor data, quantum board updates, full board data, heartbeat, or event
@@ -210,7 +209,7 @@ function App() {
 
       // Heartbeat stage 1 received
       if(heartbeat.stage === 1) {
-        setHeartbeat(heartbeat);
+        ReturnHeartbeat(heartbeat)
       }
 
       // Heartbeat stage 2 received

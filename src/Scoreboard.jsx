@@ -24,19 +24,6 @@ function Scoreboard(props) {
       return score;
     }
 
-    // Send my data to all other players
-    function BroadcastMyData(broadcastData) {
-        if(!broadcastData) { return; }
-        for(const competitor of competitors) {
-        competitor.conn.send({competitor: {
-            playerKey: broadcastData.playerKey,
-            name: broadcastData.name,
-            peerId: broadcastData.peerId,
-            requestBoard: broadcastData.requestBoard
-        }});
-        }
-    }
-
 
     function HandleNameChange(event) {
         const newName = event.target.value;
@@ -49,12 +36,16 @@ function Scoreboard(props) {
           existingPlayerData.name = newName;
           setMyData(existingPlayerData);
           console.log('My new name is: ' + newName);
-          BroadcastMyData({
-            playerKey: existingPlayerData.playerKey,
-            name: existingPlayerData.name,
-            peerId: existingPlayerData.peerId,
-            requestBoard: false
-          });
+
+          // Send my data to all other players
+          for(const competitor of competitors) {
+            competitor.conn.send({competitor: {
+              playerKey: existingPlayerData.playerKey,
+              name: existingPlayerData.name,
+              peerId: existingPlayerData.peerId,
+              requestBoard: false
+            }});
+          }
     
           let cookieDate = new Date();
           cookieDate.setMonth(cookieDate.getMonth()+1);  
