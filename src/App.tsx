@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import Peer from 'peerjs';
 import GetCookie from './GetCookie';
 import IncorporatePing from './IncorporatePing.mjs';
+import type {Board, Player, Heartbeat, Message} from './.d.ts'
 
 import './index.css';
 import BoardScreen from './BoardScreen';
@@ -10,47 +11,6 @@ import IncorporateUpdates from './IncorporateUpdates';
 
 
 function App() {
-  type Board = {
-    cells: any,
-    hint: boolean,
-    key?: number,
-    safe: boolean,
-    secret?: string,
-    wrapfield: boolean,
-    start?: Date | null,
-    end?: Date | null,
-    active: boolean,
-    stale: boolean
-  }
-
-  type Player = {
-    name?: string,
-    playerKey?: number,
-    peerId?: string,
-    peer?: any,
-    conn?: any,
-    activeConn?: boolean,
-    secret?: string,
-    active: boolean,
-    requestBoard?: boolean
-  }
-
-  type Heartbeat = {
-    stage:number,
-    playerKey:number,
-    sent?: Date,
-    bounced?: Date,
-    received?: Date
-  }
-
-  type Message = null | string | {
-    competitor?:Player,
-    updates?: any,
-    board?: Board,
-    heartbeat: Heartbeat,
-    event: {type: string}
-  }
-
   const [myData,      setMyData]      = useState<Player>({name: GetCookie("playerName") || "Anonymous", active: false, peer: null});
   const [competitors, setCompetitors] = useState<Player[]>([]);
 
