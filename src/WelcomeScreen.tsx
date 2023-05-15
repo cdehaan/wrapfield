@@ -1,9 +1,9 @@
 import React from "react";
 import type {Board, Player} from './.js'
 
-import Scoreboard from "./Scoreboard.jsx";
+import Scoreboard from "./Scoreboard.tsx";
 import CreateBoard from "./CreateBoard.js";
-import JoinBoard from "./JoinBoard.js";
+import JoinBoard from "./JoinBoard.jsx";
 
 function WelcomeScreen({ boardData, myData, competitors, setMyData, setBoardData, setCompetitors}: { boardData:Board, myData:Player, competitors:Player[], setMyData:React.Dispatch<React.SetStateAction<Player>>, setBoardData:React.Dispatch<React.SetStateAction<Board>>, setCompetitors:React.Dispatch<React.SetStateAction<Player[]>> }) {
   if(boardData.active === true) return null;

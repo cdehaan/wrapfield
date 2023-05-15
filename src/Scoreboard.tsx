@@ -1,21 +1,17 @@
 import React, { useState } from "react";
+import type {Board, Cell, Player} from './.d.ts'
 
 import GetCookie from "./GetCookie";
 
-function Scoreboard(props) {
+function Scoreboard({ boardData, myData, competitors, setMyData}: { boardData:Board, myData:Player, competitors:Player[], setMyData:React.Dispatch<React.SetStateAction<Player>> }) {
     const scoreboard = [];
-    const boardData = props.boardData
-    const myData = props.myData
-    const competitors = props.competitors
 
-    const setMyData = props.setMyData
+    const [hotUsername, setHotUsername] = useState<string>(GetCookie("playerName") || "Anonymous");
+    const [nameUpdateTimeout, setNameUpdateTimeout] = useState<ReturnType<typeof setInterval> | null>(null);
 
-    const [hotUsername, setHotUsername] = useState(GetCookie("playerName") || "Anonymous");
-    const [nameUpdateTimeout, setNameUpdateTimeout] = useState(null);
-
-    function CalculateScore(playerKey) {
+    function CalculateScore(playerKey:number):number {
       if(!boardData || !boardData.cells || !playerKey) { return 0; }
-      const scoredCells = [];
+      const scoredCells:Cell[] = [];
       boardData.cells.forEach(row => row.forEach(cell => {if(cell.owner !== null && cell.owner.includes(playerKey) && cell.neighbours > 0 && cell.scored === true) { scoredCells.push(cell); }}));
       const score = scoredCells.reduce((sum, cell) => {
         const cellScore = (cell.state === "f" || cell.state === "d") ? 1 : (cell.state === "c") ? cell.neighbours : -10;
@@ -25,7 +21,7 @@ function Scoreboard(props) {
     }
 
 
-    function HandleNameChange(event) {
+    function HandleNameChange(event:any) {
         const newName = event.target.value;
         setHotUsername(newName);
     
@@ -53,14 +49,14 @@ function Scoreboard(props) {
         }, 1000));
       }
 
-      function CreateScoreboardRow(playerData) {
+      function CreateScoreboardRow(playerData:Player) {
         const myRow = playerData.playerKey === myData.playerKey;
         const flagCount = !boardData.cells ? 0 : boardData.cells.reduce((rowsSum, row) => {
           return rowsSum + row.reduce((cellsSum, cell) => {
-            return cellsSum + ((cell.owner !== null && cell.owner.includes(playerData.playerKey) && (cell.state === 'f' || cell.state === 'd')) ? 1 : 0);
+            return cellsSum + ((cell.owner !== null && playerData.playerKey !== null && cell.owner.includes(playerData.playerKey) && (cell.state === 'f' || cell.state === 'd')) ? 1 : 0);
           }, 0);
         }, 0);
-        return <div key={`${playerData.playerKey}`} playerkey={playerData.playerKey} className='ScoreboardRow'><div className={`ScoreboardColor ${myRow ? 'MyColor' : 'CompetitorColor'}`}></div><div className='ScoreboardConnected'>{playerData.active ? "✓" : <img src='spinner.svg' className='ScoreboardImage' alt='⌛'/>}</div><div className='ScoreboardEmoji'><span role="img" aria-label="sushi">🍣</span></div><div className={`${myRow ? '' : 'ScoreboardName'}`}>{myRow ? <input type='text' className='ScoreboardTextbox' value={hotUsername} onChange={HandleNameChange}/> : playerData.name}</div><div className='ScoreboardScore'>{CalculateScore(playerData.playerKey)}</div><div className='ScoreboardFlags'>{flagCount}</div></div>
+        return <div key={`${playerData.playerKey}`} data-playerkey={playerData.playerKey} className='ScoreboardRow'><div className={`ScoreboardColor ${myRow ? 'MyColor' : 'CompetitorColor'}`}></div><div className='ScoreboardConnected'>{playerData.active ? "✓" : <img src='spinner.svg' className='ScoreboardImage' alt='⌛'/>}</div><div className='ScoreboardEmoji'><span role="img" aria-label="sushi">🍣</span></div><div className={`${myRow ? '' : 'ScoreboardName'}`}>{myRow ? <input type='text' className='ScoreboardTextbox' value={hotUsername} onChange={HandleNameChange}/> : playerData.name}</div><div className='ScoreboardScore'>{playerData.playerKey === null ? 0 : CalculateScore(playerData.playerKey)}</div><div className='ScoreboardFlags'>{flagCount}</div></div>
       }
   
       const scoreboardHeader = <div key='scoreboardHeader' className='ScoreboardRow'><div className='ScoreboardColor'></div><div className='ScoreboardConnected'><img src='wifi.png' className='ScoreboardImage' alt='📶'/></div><div className='ScoreboardEmoji'></div><div className='ScoreboardName'></div><div className='ScoreboardScore'><span role="img" aria-label="dice">🎲</span></div><div className='ScoreboardFlags'><span role="img" aria-label="flag">🚩</span></div></div>

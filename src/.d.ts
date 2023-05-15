@@ -1,7 +1,7 @@
 export type Board = {
-    cells: any,
+    cells: Cell[][] | null,
     hint: boolean,
-    key?: number,
+    key: number | null,
     safe: boolean,
     secret?: string,
     wrapfield: boolean,
@@ -11,7 +11,16 @@ export type Board = {
     stale: boolean
 }
 
-export type BoardRequest = {
+export type Cell = {
+    x: number,
+    y: number,
+    owner: number[],
+    state: string,
+    neighbours: number, // How many mines around this cell
+    scored: boolean
+}
+
+export type JoinRequest = {
     board: {
         code:string
     }
@@ -25,7 +34,7 @@ export type BoardRequest = {
 
 export type Player = {
     name?: string,
-    playerKey?: number,
+    playerKey: number | null,
     peerId?: string,
     peer?: any,
     conn?: any,

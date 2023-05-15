@@ -2,15 +2,14 @@ import React, { useEffect, useState } from 'react';
 import './index.css';
 import GetCookie from './GetCookie';
 import SendData from './SendData';
-import type {Board, Player} from './.d.ts'
 
 import WelcomeField from './WelcomeField';
 
-function JoinBoard({ active, myData, setMyData, setBoardData, setCompetitors}: { active:boolean, myData:Player, setMyData:React.Dispatch<React.SetStateAction<Player>>, setBoardData:React.Dispatch<React.SetStateAction<Board>>, setCompetitors:React.Dispatch<React.SetStateAction<Player[]>> }) {
-    const [height, setHeight] = useState<number>(0);
-    const [width,  setWidth] = useState<number>(0);
+function JoinBoard({ active, myData, setMyData, setBoardData, setCompetitors}) {
+    const [height, setHeight] = useState(null);
+    const [width,  setWidth] = useState(null);
     const [boardCode, setBoardCode] = useState(GetCookie("code") || new URLSearchParams(window.location.search).get('code') || "");
-    function HandleCodeChange(value:string) {
+    function HandleCodeChange(value) {
         value = value.replace(/[^0-9A-Za-z]+/gi,"");
         setBoardCode(value);
     }
@@ -24,18 +23,19 @@ function JoinBoard({ active, myData, setMyData, setBoardData, setCompetitors}: {
             return;
         }
     
-        const joinBoardData = {
-            board: {
-                code: boardCode
-            },
-            player: {
-                name: myData.name,
-                playerKey: GetCookie("playerKey"),
-                playerSecret: GetCookie("playerSecret"),
-                peerId: myData.peerId
-            }
-        };
-        
+        const joinBoardData = {};
+    
+        joinBoardData.board = {
+            code: boardCode
+        }
+    
+        joinBoardData.player = {
+            name: myData.name,
+            playerKey: GetCookie("playerKey"),
+            playerSecret: GetCookie("playerSecret"),
+            peerId: myData.peerId
+        }
+    
         const joinBoardResponse = JSON.parse(await SendData("JoinBoard.php", joinBoardData));
         if(joinBoardResponse.error) {
             alert(joinBoardResponse.error);
@@ -50,8 +50,8 @@ function JoinBoard({ active, myData, setMyData, setBoardData, setCompetitors}: {
         setMyData(existingPlayerData => { return {...existingPlayerData, ...joinBoardResponse.player}; });
 
         // Exclude myself from the list of competitors
-        const newCompetitors = joinBoardResponse.players.filter((player:Player) => player.playerKey !== joinBoardResponse.player.playerKey);
-        newCompetitors.forEach((competitor: Player) => {
+        const newCompetitors = joinBoardResponse.players.filter(player => player.playerKey !== joinBoardResponse.player.playerKey);
+        newCompetitors.forEach(competitor => {
             competitor.activeConn = false;
             competitor.conn = myData.peer.connect(competitor.peerId);
         });
@@ -65,8 +65,8 @@ function JoinBoard({ active, myData, setMyData, setBoardData, setCompetitors}: {
     }
 
     useEffect(() => {
-        setHeight(document.getElementById("JoinGame")?.getBoundingClientRect().height || 0);
-        setWidth(document.getElementById("JoinGame")?.getBoundingClientRect().width || 0);
+        setHeight(document.getElementById("JoinGame").getBoundingClientRect().height);
+        setWidth(document.getElementById("JoinGame").getBoundingClientRect().width);
     }, []);
 
     return (

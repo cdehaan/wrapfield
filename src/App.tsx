@@ -11,11 +11,12 @@ import IncorporateUpdates from './IncorporateUpdates';
 
 
 function App() {
-  const [myData,      setMyData]      = useState<Player>({name: GetCookie("playerName") || "Anonymous", active: false, peer: null});
+  const [myData,      setMyData]      = useState<Player>({name: GetCookie("playerName") || "Anonymous", playerKey:null, active: false, peer: null});
   const [competitors, setCompetitors] = useState<Player[]>([]);
 
   const [boardData,   setBoardData]   = useState<Board>({
     cells: null,
+    key: null,
     hint: true,
     safe: true,
     wrapfield: false,
@@ -85,7 +86,7 @@ function App() {
         competitor.conn.send("Hello from player #" + myData.playerKey);
 
         // Received data as guest
-        competitor.conn.on('data', function(data:Message) { ProcessMessage(data, competitor.playerKey); });
+        competitor.conn.on('data', function(data:Message) { ProcessMessage(data, competitor.playerKey || undefined); });
 
         // Send our data to them
         setTimeout(() => {
@@ -175,7 +176,7 @@ function App() {
 
         newCompetitors[competitorToUpdate].conn.removeAllListeners('data');
         newCompetitors[competitorToUpdate].conn.on('data', function(data:any) {
-          ProcessMessage(data, newCompetitor.playerKey);
+          ProcessMessage(data, newCompetitor.playerKey || undefined);
         });
 
         // A reconnecting player will have an old entry in Competitors array. Filter out any competitor with the same player key and different Peer ID
@@ -265,7 +266,7 @@ function App() {
     console.log('Connected as host to: ' + conn.peer);
 
     // A guest just connected to us. We don't know anything about them yet except their conn (which has their peerId)
-    const competitorPlaceholder = {conn: conn, peerId: conn.peer, active: false};
+    const competitorPlaceholder = {playerKey: null, conn: conn, peerId: conn.peer, active: false};
     setCompetitors(oldCompetitors => { return [...oldCompetitors, competitorPlaceholder] });
 
     // Received data as host.
