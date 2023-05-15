@@ -11,6 +11,18 @@ export type Board = {
     stale: boolean
 }
 
+export type BoardRequest = {
+    board: {
+        code:string
+    }
+    player: {
+        name: string,
+        playerKey: number,
+        playerSecret: string,
+        peerId: string
+    }
+}
+
 export type Player = {
     name?: string,
     playerKey?: number,

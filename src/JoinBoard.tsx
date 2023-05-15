@@ -2,19 +2,15 @@ import React, { useEffect, useState } from 'react';
 import './index.css';
 import GetCookie from './GetCookie';
 import SendData from './SendData';
+import type {Board, Player} from './.d.ts'
 
 import WelcomeField from './WelcomeField';
 
-function JoinBoard(props) {
-    const myData = props.myData
-    const setMyData = props.setMyData
-    const setBoardData = props.setBoardData
-    const setCompetitors = props.setCompetitors
-
-    const [height, setHeight] = useState(null);
-    const [width,  setWidth] = useState(null);
+function JoinBoard({ active, myData, setMyData, setBoardData, setCompetitors}: { active:boolean, myData:Player, setMyData:React.Dispatch<React.SetStateAction<Player>>, setBoardData:React.Dispatch<React.SetStateAction<Board>>, setCompetitors:React.Dispatch<React.SetStateAction<Player[]>> }) {
+    const [height, setHeight] = useState<number>(0);
+    const [width,  setWidth] = useState<number>(0);
     const [boardCode, setBoardCode] = useState(GetCookie("code") || new URLSearchParams(window.location.search).get('code') || "");
-    function HandleCodeChange(value) {
+    function HandleCodeChange(value:string) {
         value = value.replace(/[^0-9A-Za-z]+/gi,"");
         setBoardCode(value);
     }
@@ -28,19 +24,18 @@ function JoinBoard(props) {
             return;
         }
     
-        const joinBoardData = {};
-    
-        joinBoardData.board = {
-            code: boardCode
-        }
-    
-        joinBoardData.player = {
-            name: myData.name,
-            playerKey: GetCookie("playerKey"),
-            playerSecret: GetCookie("playerSecret"),
-            peerId: myData.peerId
-        }
-    
+        const joinBoardData = {
+            board: {
+                code: boardCode
+            },
+            player: {
+                name: myData.name,
+                playerKey: GetCookie("playerKey"),
+                playerSecret: GetCookie("playerSecret"),
+                peerId: myData.peerId
+            }
+        };
+        
         const joinBoardResponse = JSON.parse(await SendData("JoinBoard.php", joinBoardData));
         if(joinBoardResponse.error) {
             alert(joinBoardResponse.error);
@@ -55,8 +50,8 @@ function JoinBoard(props) {
         setMyData(existingPlayerData => { return {...existingPlayerData, ...joinBoardResponse.player}; });
 
         // Exclude myself from the list of competitors
-        const newCompetitors = joinBoardResponse.players.filter(player => player.playerKey !== joinBoardResponse.player.playerKey);
-        newCompetitors.forEach(competitor => {
+        const newCompetitors = joinBoardResponse.players.filter((player:Player) => player.playerKey !== joinBoardResponse.player.playerKey);
+        newCompetitors.forEach((competitor: Player) => {
             competitor.activeConn = false;
             competitor.conn = myData.peer.connect(competitor.peerId);
         });
@@ -70,12 +65,12 @@ function JoinBoard(props) {
     }
 
     useEffect(() => {
-        setHeight(document.getElementById("JoinGame").getBoundingClientRect().height);
-        setWidth(document.getElementById("JoinGame").getBoundingClientRect().width);
+        setHeight(document.getElementById("JoinGame")?.getBoundingClientRect().height || 0);
+        setWidth(document.getElementById("JoinGame")?.getBoundingClientRect().width || 0);
     }, []);
 
     return (
-        <div className={`WelcomeCard ${props.active === false ? "" : "Shrunk"}`} id="JoinGame" style={{height: (props.active === false ? height : 0), width: (props.active === false ? width : 0)}}>
+        <div className={`WelcomeCard ${active === false ? "" : "Shrunk"}`} id="JoinGame" style={{height: (active === false ? height : 0), width: (active === false ? width : 0)}}>
             <span className='WelcomeHeader'>Join Game</span>
             <div className='WelcomeFields'>
                 <WelcomeField id="JoinGameBoardCode" text="Game code" maxLength={10}  value={boardCode} UpdateFunction={HandleCodeChange}/>

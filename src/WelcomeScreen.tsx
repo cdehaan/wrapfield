@@ -5,8 +5,6 @@ import Scoreboard from "./Scoreboard.jsx";
 import CreateBoard from "./CreateBoard.js";
 import JoinBoard from "./JoinBoard.js";
 
-//function WelcomeScreen(props) {
-//  boardData={boardData} myData={myData} competitors={competitors} setMyData={setMyData} setBoardData={setBoardData} setCompetitors={setCompetitors}
 function WelcomeScreen({ boardData, myData, competitors, setMyData, setBoardData, setCompetitors}: { boardData:Board, myData:Player, competitors:Player[], setMyData:React.Dispatch<React.SetStateAction<Player>>, setBoardData:React.Dispatch<React.SetStateAction<Board>>, setCompetitors:React.Dispatch<React.SetStateAction<Player[]>> }) {
   if(boardData.active === true) return null;
 
