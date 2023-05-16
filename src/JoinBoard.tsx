@@ -72,7 +72,7 @@ function JoinBoard({ active, myData, setMyData, setBoardData, setCompetitors}: {
     }, []);
 
     return (
-        <div className={`WelcomeCard ${active === false ? "" : "Shrunk"}`} id="JoinGame" style={{height: (active === false ? height : 0), width: (active === false ? width : 0)}}>
+        <div className={`WelcomeCard ${active === false ? "" : "Shrunk"}`} id="JoinGame">
             <span className='WelcomeHeader'>Join Game</span>
             <div className='WelcomeFields'>
                 <WelcomeField id="JoinGameBoardCode" text="Game code" maxLength={10}  value={boardCode} UpdateFunction={HandleCodeChange}/>

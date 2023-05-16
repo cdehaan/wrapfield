@@ -11,17 +11,32 @@ import IncorporateUpdates from './IncorporateUpdates';
 
 
 function App() {
-  const [myData,      setMyData]      = useState<Player>({name: GetCookie("playerName") || "Anonymous", playerKey:null, active: false, peer: null});
+  const [myData,      setMyData]      = useState<Player>({
+    name: GetCookie("playerName") || "Anonymous",
+    playerKey:null,
+    peerId:null,
+    peer: null,
+    conn: null,
+    activeConn: false,
+    secret: null,
+    active: false,
+  });
+
   const [competitors, setCompetitors] = useState<Player[]>([]);
 
   const [boardData,   setBoardData]   = useState<Board>({
-    cells: null,
     key: null,
+    code: null,
+    cells: null,
+    width: 10,
+    height: 10,
+    mines: 15,
     hint: true,
     safe: true,
+    private: false,
     wrapfield: false,
     active: false,
-    stale: false
+    stale: false,
   });
 
   const [pings,       setPings]       = useState([]) // {playerKey: 1, sent: time, bounced: time, ping: time, skew: percent}
@@ -266,7 +281,7 @@ function App() {
     console.log('Connected as host to: ' + conn.peer);
 
     // A guest just connected to us. We don't know anything about them yet except their conn (which has their peerId)
-    const competitorPlaceholder = {name: null, playerKey: null, conn: conn, peerId: conn.peer, active: false};
+    const competitorPlaceholder = {name: null, playerKey: null, peerId: conn.peer, peer: null, conn: conn, activeConn: false, active: false};
     setCompetitors(oldCompetitors => { return [...oldCompetitors, competitorPlaceholder] });
 
     // Received data as host.
