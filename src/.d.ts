@@ -33,7 +33,7 @@ export type JoinRequest = {
 }
 
 export type Player = {
-    name?: string,
+    name: string | null,
     playerKey: number | null,
     peerId?: string,
     peer?: any,

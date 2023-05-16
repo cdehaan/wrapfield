@@ -266,7 +266,7 @@ function App() {
     console.log('Connected as host to: ' + conn.peer);
 
     // A guest just connected to us. We don't know anything about them yet except their conn (which has their peerId)
-    const competitorPlaceholder = {playerKey: null, conn: conn, peerId: conn.peer, active: false};
+    const competitorPlaceholder = {name: null, playerKey: null, conn: conn, peerId: conn.peer, active: false};
     setCompetitors(oldCompetitors => { return [...oldCompetitors, competitorPlaceholder] });
 
     // Received data as host.
