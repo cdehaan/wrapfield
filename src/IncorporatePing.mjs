@@ -8,7 +8,7 @@ function IncorporatePing(currentPings, pingEvent) {
     // If any critical ping data is missing, quit
     if(!pingEvent || !pingEvent.playerKey) return currentPings
 
-    const now = Date.now()
+    //const now = Date.now()
     const playerKey = pingEvent.playerKey
     const pingEntry = currentPings.find(entry => {return entry.playerKey === pingEvent.playerKey}) // Might be undefined
 

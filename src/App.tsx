@@ -91,32 +91,32 @@ function App() {
 
   // Connect to competitors that we don't have a connection to
   useEffect(() => {
-    const newCompetitors = competitors.filter(competitor => competitor.activeConn === false)
+    const newCompetitors = competitors.filter(competitor => competitor.activeConn === false);
+    if(!newCompetitors) return;
 
     newCompetitors.forEach(competitor => {
-      console.log(`Connecting to player #${competitor.playerKey} at ${competitor.peerId}`);
-      competitor.conn.on('open', () => {
         competitor.activeConn = true;
-        console.log(`Connected as guest to player #${competitor.playerKey}`);
-        competitor.conn.send("Hello from player #" + myData.playerKey);
+        console.log(`Initial connection to peer: ${competitor.peerId}`);
 
-        // Received data as guest
-        competitor.conn.on('data', function(data:Message) { ProcessMessage(data, competitor.playerKey || undefined); });
-
-        // Send our data to them
-        setTimeout(() => {
-          competitor.conn.send({competitor: {
-          playerKey: myData.playerKey,
-          name: myData.name,
-          peerId: myData.peerId,
-          requestBoard: true,
-          time: Date.now() // Currently unused
-          }});
-        }, 50);
-      });
-    })
-  }, [competitors])
-
+        competitor.conn.on('open', () => {
+          competitor.conn.send("Hello from player #" + myData.playerKey);
+    
+          // Received data from them
+          competitor.conn.on('data', function(data:Message) { ProcessMessage(data, competitor.playerKey || undefined); });
+    
+          // Send our data to them
+          setTimeout(() => {
+            competitor.conn.send({competitor: {
+            playerKey: myData.playerKey,
+            name: myData.name,
+            peerId: myData.peerId,
+            //requestBoard: true,
+            time: Date.now() // Currently unused
+            }});
+          }, 50);
+        });
+    });
+  }, [competitors]);
 
   // Setup a heartbeat to all competitors
   useEffect(() => {
@@ -176,7 +176,7 @@ function App() {
 
     // A new competitor joined and is sending us their data. There should already be a placeholder from their connect event
     const newCompetitor = data.competitor;
-    if(newCompetitor) {
+    if(newCompetitor && newCompetitor.peerId) {
       console.log("New competitor data received");
       setCompetitors(oldCompetitors => {
         let newCompetitors = [...oldCompetitors];
@@ -198,7 +198,7 @@ function App() {
         newCompetitors = newCompetitors.filter(competitor => { return (competitor.peerId === newCompetitor.peerId || competitor.playerKey !== newCompetitor.playerKey); })
 
         return newCompetitors;
-      });  
+      });
     }
 
     const updates = data.updates;
@@ -220,7 +220,7 @@ function App() {
 
     const heartbeat:Heartbeat = data.heartbeat; // {stage: 1, playerKey: 140}
     if(heartbeat) {
-      if(heartbeat.playerKey !== competitorKey) { console.log("Warning: Player Key in heartbeat and Player key in connection object don't match.") }
+      if(competitorKey && heartbeat.playerKey !== competitorKey) { console.log(`Warning: Player Key in heartbeat (${heartbeat.playerKey}) and Player key in connection object (${competitorKey}) don't match.`) }
 
       // Heartbeat stage 1 received
       if(heartbeat.stage === 1) {
@@ -289,6 +289,9 @@ function App() {
     conn.on('data', function(data:any) {
       ProcessMessage(data);
     });
+
+    conn.send({board: boardData});
+
   }, [ProcessMessage]);
 
 
