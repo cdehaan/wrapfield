@@ -69,9 +69,9 @@ function App() {
       setMyData(existingData => { return {...existingData, name: existingPlayerName}; });
     }
 
-    const existingPlayerKey = parseInt(GetCookie("playerKey"));
-    if(Number.isInteger(existingPlayerKey)) {
-      setMyData(existingData => { return {...existingData, playerKey: existingPlayerKey}; });
+    const existingPlayerKey = GetCookie("playerKey")
+    if(existingPlayerKey !== null) {
+      setMyData(existingData => { return {...existingData, playerKey: parseInt(existingPlayerKey)}; });
     }
   }, []);
 

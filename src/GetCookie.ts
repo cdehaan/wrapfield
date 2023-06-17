@@ -1,4 +1,4 @@
-function GetCookie(cname: string):string {
+function GetCookie(cname: string):string|null {
     const name = cname + "=";
     const cutCookie = decodeURIComponent(document.cookie).split(';');
     for(let i = 0; i <cutCookie.length; i++) {
@@ -10,7 +10,7 @@ function GetCookie(cname: string):string {
         return c.substring(name.length, c.length);
       }
     }
-    return "";
+    return null;
 }
 
 export default GetCookie

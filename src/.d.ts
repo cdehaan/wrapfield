@@ -28,24 +28,14 @@ export type Cell = {
 
 export type BoardRequest = {
     board: Board
-    player: {
-        name: string,
-        playerKey: number,
-        playerSecret: string,
-        peerId: string
-    }
+    player: Player
 }
 
 export type JoinRequest = {
     board: {
         code:string
     }
-    player: {
-        name: string,
-        playerKey: number,
-        playerSecret: string,
-        peerId: string
-    }
+    player: Player
 }
 
 export type Player = {

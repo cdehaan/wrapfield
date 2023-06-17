@@ -24,15 +24,22 @@ function JoinBoard({ active, myData, setMyData, setBoardData, setCompetitors}: {
             return;
         }
 
+        const playerKey    = GetCookie("playerKey")
+        const playerSecret = GetCookie("playerSecret")
+
         const joinBoardData:JoinRequest = {
             board: {
                 code: boardCode
             },
             player: {
                 name: myData.name || "Anonymous",
-                playerKey: parseInt(GetCookie("playerKey")),
-                playerSecret: GetCookie("playerSecret"),
-                peerId: myData.peerId
+                playerKey: playerKey === null ? null : parseInt(playerKey),
+                secret: playerSecret,
+                peerId: myData.peerId,
+                peer: null,
+                conn: null,
+                activeConn: false,
+                active: false
             }
         };
     

@@ -16,13 +16,6 @@ function CreateBoard({ active, myData, setMyData, setBoardData}: {active: boolea
     const [width,  setWidth] = useState<number|null>(null);
 
     async function CreateNewGame() {
-        // If some data is missing, abort
-        if(!boardSettings.mines || !boardSettings.height || !boardSettings.width || !myData.name) { return; }
-
-        boardSettings.width  = Math.max(4, Math.min(30, boardSettings.width))
-        boardSettings.height = Math.max(4, Math.min(30, boardSettings.height))
-        boardSettings.mines  = Math.max(3, Math.min(boardSettings.width*boardSettings.height-1, boardSettings.mines))
-
         // If Peerjs is still connecting, try again in a little while
         if(myData.peerId === null) {
             setTimeout(() => {
@@ -32,13 +25,25 @@ function CreateBoard({ active, myData, setMyData, setBoardData}: {active: boolea
             return;
         }
 
+        boardSettings.width  = Math.max(4, Math.min(30, boardSettings.width))
+        boardSettings.height = Math.max(4, Math.min(30, boardSettings.height))
+        boardSettings.mines  = Math.max(3, Math.min(boardSettings.width*boardSettings.height-1, boardSettings.mines))
+
+        const playerKey    = GetCookie("playerKey")
+        const playerSecret = GetCookie("playerSecret")
+
         const newBoardData:BoardRequest = {
             board: boardSettings,
             player: {
                 peerId: myData.peerId,
-                name: myData.name,
-                playerKey: parseInt(GetCookie("playerKey")),  // Will be null for new players
-                playerSecret: GetCookie("playerSecret")       // Will be null for new players
+                name: myData.name || "Anonymous",
+                playerKey: playerKey === null ? null : parseInt(playerKey),  // Will be null for new players
+                secret: playerSecret,                                        // Will be null for new players
+                peer: null, // Not needed for board request
+                conn: null, // Not needed for board request
+                activeConn: false,
+                active: false
+
             }
         };
       
