@@ -186,7 +186,7 @@ function App() {
         newCompetitors[competitorToUpdate] = {...newCompetitors[competitorToUpdate], ...newCompetitor, active: true};
         if(newCompetitor.requestBoard) {
           newCompetitors[competitorToUpdate].conn.send("Welcome to Wrapfield");
-          newCompetitors[competitorToUpdate].conn.send({board: boardData});  
+          newCompetitors[competitorToUpdate].conn.send({board: boardData});
         }
 
         newCompetitors[competitorToUpdate].conn.removeAllListeners('data');

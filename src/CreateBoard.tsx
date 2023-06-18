@@ -42,8 +42,7 @@ function CreateBoard({ active, myData, setMyData, setBoardData}: {active: boolea
                 peer: null, // Not needed for board request
                 conn: null, // Not needed for board request
                 activeConn: false,
-                active: false
-
+                active: false,
             }
         };
       

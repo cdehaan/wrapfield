@@ -39,7 +39,7 @@ function JoinBoard({ active, myData, setMyData, setBoardData, setCompetitors}: {
                 peer: null,
                 conn: null,
                 activeConn: false,
-                active: false
+                active: false,
             }
         };
     

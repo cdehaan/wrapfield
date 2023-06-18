@@ -47,7 +47,7 @@ export type Player = {
     activeConn: boolean,
     secret?: string | null,
     active: boolean,
-    requestBoard?: boolean
+    requestBoard?: boolean,
 }
 
 export type Heartbeat = {
