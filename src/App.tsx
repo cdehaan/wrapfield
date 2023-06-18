@@ -284,12 +284,6 @@ function App() {
     const competitorPlaceholder = {name: null, playerKey: null, peerId: conn.peer, peer: null, conn: conn, activeConn: false, active: false};
     setCompetitors(oldCompetitors => { return [...oldCompetitors, competitorPlaceholder] });
 
-    // Received data as host.
-    conn.removeAllListeners('data');
-    conn.on('data', function(data:any) {
-      ProcessMessage(data);
-    });
-
     conn.send({board: boardData});
 
   }, [ProcessMessage]);
