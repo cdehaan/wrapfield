@@ -29,15 +29,15 @@
 
 
     // Player peer ID, other players will use this to connect to the game creator
-    if(!isset($playerInput->peerId)) { $returnData['error'] = 'No Peer Id found when creating board.'; die(json_encode($returnData)); }
+    if(!isset($playerInput->peerId)) { $returnData['error'] = 'No Peer Id found when joining board.'; die(json_encode($returnData)); }
     $peerId = substr(preg_replace("/[^A-Za-z0-9 -]/", '', $playerInput->peerId), 0, 50); //5456de20-0bc4-479e-83dd-9805450fae03
 
 
     // If the player sent credentials, verify them
     $existingPlayer = false;
-    if(isset($playerInput->playerKey) && isset($playerInput->playerSecret)) {
+    if(isset($playerInput->playerKey) && isset($playerInput->secret)) {
         $playerKey = intval($playerInput->playerKey);
-        $playerSecret = substr(preg_replace("/[^A-Za-z0-9]/", '', $playerInput->playerSecret), 0, 20);
+        $playerSecret = substr(preg_replace("/[^A-Za-z0-9]/", '', $playerInput->secret), 0, 20);
 
         $sql = "SELECT COUNT(*) FROM player WHERE player_key = $playerKey AND secret = '$playerSecret';";
         $result = $conn->query($sql);
