@@ -1,5 +1,5 @@
 import React from "react";
-import type {Board, Player} from './.js'
+import type {Board, Player} from './.d.ts'
 
 import Scoreboard from "./Scoreboard";
 import CreateBoard from "./CreateBoard";
