@@ -12,7 +12,7 @@ function IncorporatePing(currentPings, pingEvent) {
     const playerKey = pingEvent.playerKey
     const pingEntry = currentPings.find(entry => {return entry.playerKey === pingEvent.playerKey}) // Might be undefined
 
-    // A ping was just sent. Recoring the send time.
+    // A ping was just sent. Recording the send time.
     if(pingEvent.sent) {
 
         // TODO timeout for dead heartbeat can go here

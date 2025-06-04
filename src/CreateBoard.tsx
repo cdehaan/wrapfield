@@ -1,6 +1,6 @@
 import './index.css';
 import React, { useEffect, useState } from 'react';
-import type {Board, Player, BoardRequest} from './.js'
+import type {Board, Player, BoardRequest} from './.d.ts'
 
 import GetCookie from './GetCookie';
 import SendData from './SendData';
