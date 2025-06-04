@@ -6,9 +6,6 @@ import GetCookie from './GetCookie';
 import SendData from './SendData';
 
 function CreateBoard({ active, myData, setMyData, setBoardData}: {active: boolean, myData:Player, setMyData:React.Dispatch<React.SetStateAction<Player>>, setBoardData:React.Dispatch<React.SetStateAction<Board>> }) {
-    const showCreateGame = new URLSearchParams(window.location.search).get('code') === null;
-    if(showCreateGame === false) { return null }
-
     const [boardSettings, setBoardSettings] = useState<Board>({key: null, code: null, cells: null, width: 10, height: 10, mines: 15, private: false, active: false, wrapfield: false, hint:true, safe: true, stale: false});
 
     // Size of the component, not the gameboard size. CSS won't animate from "auto".
@@ -129,6 +126,9 @@ function CreateBoard({ active, myData, setMyData, setBoardData}: {active: boolea
     }, []);
 
     const maxMines = boardSettings.height*boardSettings.width -1 || 99;
+
+    const showCreateGame = new URLSearchParams(window.location.search).get('code') === null;
+    if(showCreateGame === false) { return null }
 
     return (
         <div className={`WelcomeCard ${active === false ? "" : "Shrunk"}`} id="CreateGame">
