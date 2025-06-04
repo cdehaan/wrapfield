@@ -1,6 +1,6 @@
 async function SendData(phpFilename, data) {
 
-    if(process.env.NODE_ENV === 'development') { phpFilename = 'http://localhost:3000/public/' + phpFilename; }
+    if(process.env.NODE_ENV === 'development') { phpFilename = 'http://localhost:3000/' + phpFilename; }
     //if(process.env.NODE_ENV === 'development') { phpFilename = 'http://localhost/wrapfield/public/' + phpFilename; }
     //else { phpFilename = 'http://localhost/wrapfield/build/' + phpFilename; }
 

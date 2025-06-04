@@ -38,14 +38,17 @@ body {
   background: #fff;
   display: flex;
   justify-content: center;
+  background-image: linear-gradient(rgba(255,255,255,0.75), rgba(255,255,255,0.75)), url(hills.jpg);
+  background-image: url(hills.jpg);
 }
 
 input[type='checkbox'] {
   display: none;
 }
 
-.App {
+.Welcome {
   height: 100%;
+  width: 100%;
   display: flex;
   align-items: center;
   flex-direction: column;
@@ -57,11 +60,51 @@ input[type='checkbox'] {
 }
 */
 
+div.title {
+  width: 90%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  justify-items: center;
+  background: rgba(255,255,255,0.5);
+  margin: 1rem;
+  border-radius: 0.5rem;
+  border: 2px solid #000;
+}
+
+span.title {
+  font-size: 1.5rem;
+  display: flex;
+  justify-content: center;
+}
+
+span.subtitle {
+  font-size: 1rem;
+  display: flex;
+  justify-content: center;
+}
+
+span.footer {
+  font-size: 0.8rem;
+  text-decoration: underline;
+}
+
+div.logo {
+  background-image: url(flagLogo256.png);
+  background-size: contain;
+  background-position: center center;
+  background-repeat: no-repeat;
+  height: 6rem;
+  width: 6rem;
+}
+
 .Scoreboard {
   display: flex;
   flex-direction: column;
   border: 1px solid #bbb;
   border-radius: 0.5rem;
+  background-color: rgba(255,255,255,0.5);
+  backdrop-filter: blur(5px);
   margin: 1rem 5vh;
   overflow: hidden;
 }
@@ -111,7 +154,7 @@ input[type='checkbox'] {
   padding: 0 0.5rem;
 }
 
-.Footer {
+.Debug {
   display: none;
   z-index: 10;
   position: fixed;
@@ -142,7 +185,8 @@ input[type='checkbox'] {
   box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
   border-radius: 1em;
   transition: height var(--animationSpeed), width var(--animationSpeed);
-  background-color: #fff;
+  background-color: rgba(255,255,255,0.5);
+  backdrop-filter: blur(5px);
 }
 
 /*
@@ -154,7 +198,7 @@ input[type='checkbox'] {
 
 .WelcomeHeader {
   font-size: 2rem;
-  margin: 0.5rem;
+  margin-top: 0.5rem;
   text-align: center;
 }
 
@@ -203,7 +247,6 @@ input[type='checkbox'] {
 .BoardLayer {
   height: calc(var(--truevh) * 100);
   width: calc(var(--truevw) * 100);
-  background-color: #fff;
   display: flex;
   flex-direction: column;
   justify-items: center;
@@ -227,6 +270,8 @@ input[type='checkbox'] {
 
 .BoardWrapper {
   border: 0.1rem solid #888;
+  background-color: rgba(255,255,255,0.5);
+  backdrop-filter: blur(5px);
   border-radius: 0.5rem;
   overflow: hidden;
   box-shadow: 2px 2px 2px #888;
@@ -248,6 +293,15 @@ input[type='checkbox'] {
 
 .BoardInfoUrl {
   margin: 0 1rem;
+}
+
+div.NewGameButton {
+  margin: 0 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 0.5rem;
+  padding: 0.25rem;
+  box-shadow: 2px 2px 2px #444, 4px 4px 4px #444;
+  background: rgba(255,255,255,0.8);
 }
 
 .GameBoard {
@@ -365,4 +419,14 @@ input[type='checkbox'] {
   height: 0;
   width: 0;
   overflow: hidden;
+}
+
+.GreenFlash {
+  animation: color-change 0.5s;
+}
+
+@keyframes color-change {
+  0% { color: #000; }
+  50% { color: #080; }
+  100% { color: #000; }
 }

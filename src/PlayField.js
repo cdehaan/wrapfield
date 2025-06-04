@@ -6,13 +6,31 @@ import Timer from './Timer';
 
 function PlayField(props) {
   const [displayQR, setDisplayQR] = useState(false);
+
+  const competitors = props.competitors
+
   const boardData = props.boardData;
-  if(!boardData.cells) { return(""); }
+  if(!boardData.cells) { return null; }
+
   const height = boardData.cells.length || 10;
   const width  = boardData.cells[0].length || height || 10;
   const gameboardStyle = { gridTemplateRows: `repeat(${height}, 1fr)`, gridTemplateColumns: `repeat(${width}, 1fr)`};
   const wrapfield = boardData.wrapfield;
   const myData = props.myData;
+
+  const remainingFlags = !boardData.cells ? 0 : boardData.cells.reduce((rowsSum, row) => {
+    return rowsSum + row.reduce((cellsSum, cell) => {
+      return cellsSum + ((cell.state === 'm') ? 1 : 0) - ((cell.state === 'd') ? 1 : 0);
+    }, 0);
+  }, 0);
+
+  const remainingSafe = !boardData.cells ? 0 : boardData.cells.reduce((rowsSum, row) => {
+    return rowsSum + row.reduce((cellsSum, cell) => {
+      return cellsSum + ((cell.state === 's') ? 1 : 0) + ((cell.state === 'd') ? 1 : 0);
+    }, 0);
+  }, 0);
+
+  const gameComplete = remainingSafe === 0 && remainingFlags === 0;
 
   let localUpdates = [];
 
@@ -45,6 +63,9 @@ function PlayField(props) {
     const cellOwner = cell.owner;
     const cellState = cell.state;
 
+    // Can't right click when the game is done
+    if(gameComplete === true) { return }
+
     // Can't right click cleared/exploded tiles
     if(cellState === "c" || cellState === "e") { return; }
 
@@ -75,7 +96,7 @@ function PlayField(props) {
       localUpdates.push(oneUpdate);
     }
 
-    props.BroadcastUpdates(localUpdates);
+    BroadcastUpdates(localUpdates);
     return false;
   }
 
@@ -87,6 +108,9 @@ function PlayField(props) {
     const cell = boardData.cells[tileY][tileX];
     const cellState = cell.state;
 
+    // Can't double click when the game is done
+    if(gameComplete === true) { return }
+
     // Can only double click clear tiles
     if(cellState !== "c") { return; }
 
@@ -95,10 +119,13 @@ function PlayField(props) {
 
     const neighbourCells = GetNeighbours(cell);
     neighbourCells.forEach(cell => { if(["s","m"].includes(cell.state)) {RevealCell(cell);} });
-    props.BroadcastUpdates(localUpdates);
+    BroadcastUpdates(localUpdates);
   }
 
   function TileClicked(event) {
+    // Can't clear a tile when the game is done
+    if(gameComplete === true) { return }
+
     const tile = event.target;
     const tileY = parseInt(tile.getAttribute("y"));
     const tileX = parseInt(tile.getAttribute("x"));
@@ -167,7 +194,7 @@ function PlayField(props) {
       }
     }
 
-    props.BroadcastUpdates(localUpdates);
+    BroadcastUpdates(localUpdates);
   }
 
   function DeepClick(cell) {
@@ -197,17 +224,27 @@ function PlayField(props) {
     setDisplayQR(oldStatus => !oldStatus);
   }
 
-  const remainingFlags = !boardData.cells ? 0 : boardData.cells.reduce((rowsSum, row) => {
-    return rowsSum + row.reduce((cellsSum, cell) => {
-      return cellsSum + ((cell.state === 'm') ? 1 : 0) - ((cell.state === 'd') ? 1 : 0);
-    }, 0);
-  }, 0);
+  function NewGame() {    
+    for(const competitor of competitors) {
+      competitor.conn.send({event: {
+        type: "New Game",
+        time: Date.now()
+      }});
+    }
+  }
 
-  const remainingSafe = !boardData.cells ? 0 : boardData.cells.reduce((rowsSum, row) => {
-    return rowsSum + row.reduce((cellsSum, cell) => {
-      return cellsSum + ((cell.state === 's') ? 1 : 0) + ((cell.state === 'd') ? 1 : 0);
-    }, 0);
-  }, 0);
+  // Send updates (tile clicks) to all other players
+  function BroadcastUpdates(localUpdates) {
+    if(!localUpdates || localUpdates.length === 0) { return; }
+    for(const competitor of competitors) {
+      competitor.conn.send({updates: {cellUpdates: localUpdates}});
+    }
+    props.HandleUpdates({cellUpdates: localUpdates});
+    localUpdates = [];
+  }
+
+
+  const gameStateDiv = gameComplete ? <>🎉<div className='NewGameButton' onClick={NewGame}>New Game</div></> : `🚩: ${remainingFlags}`
 
   const tiles = [];
   if(boardData && boardData.cells) {
@@ -230,8 +267,8 @@ function PlayField(props) {
   return (
       <>
         <div className='BoardWrapper'>
-          <div className='BoardInfo'><img className="BoardInfoImage" alt='QR Code' src="QrIcon.svg" onClick={ToggleDisplayQR}/>{displayQR ? <span className='BoardInfoUrl'>{`https://www.wrapfield.com/?code=${boardData.code}`}</span> : <><span>{remainingSafe === 0 ? "🎉" : `🚩: ${remainingFlags}`}</span><span><Timer start={boardData.start} end={boardData.end}></Timer></span></>}</div>
-          <div className='GameBoard' style={gameboardStyle}>{tiles}{displayQR && <div className='QRWrapper'> <QRCode id='QRCode' size={280} value={`https://www.wrapfield.com/?code=${boardData.code}`} /></div>}</div>
+          <div className='BoardInfo'><img className="BoardInfoImage" alt='QR Code' src="QrIcon.svg" onClick={ToggleDisplayQR}/>{displayQR ? <span className='BoardInfoUrl'>{`https://wrapfield.com/?code=${boardData.code}`}</span> : <><div style={{display:"flex", alignItems:"center"}}>{gameStateDiv}</div><span><Timer start={boardData.start} end={boardData.end}></Timer></span></>}</div>
+          <div className='GameBoard' style={gameboardStyle}>{tiles}{displayQR && <div className='QRWrapper'> <QRCode id='QRCode' size={280} value={`https://wrapfield.com/?code=${boardData.code}`} /></div>}</div>
         </div>
         <TouchToggle />
       </>
