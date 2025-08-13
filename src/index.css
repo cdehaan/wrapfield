@@ -38,8 +38,8 @@ body {
   background: #fff;
   display: flex;
   justify-content: center;
-  background-image: linear-gradient(rgba(255,255,255,0.75), rgba(255,255,255,0.75)), url(hills.jpg);
-  background-image: url(hills.jpg);
+  background-image: linear-gradient(rgba(255,255,255,0.75), rgba(255,255,255,0.75)), url(../public/hills.jpg);
+  background-image: url(../public/hills.jpg);
 }
 
 input[type='checkbox'] {
@@ -90,7 +90,7 @@ span.footer {
 }
 
 div.logo {
-  background-image: url(flagLogo256.png);
+  background-image: url(../public/flagLogo256.png);
   background-size: contain;
   background-position: center center;
   background-repeat: no-repeat;
