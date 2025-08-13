@@ -1,5 +1,4 @@
 <?php
-    require __DIR__ . '/vendor/autoload.php';
     $ipAddress = $_SERVER['REMOTE_ADDR'];
     $dbName = $_ENV['MYSQL_DATABASE'];
     $dbUser = $_ENV['MYSQL_USERNAME'];
