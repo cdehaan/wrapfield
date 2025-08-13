@@ -1,9 +1,10 @@
 import React from "react"
+import type {Board, Player} from './.d.ts'
 
 import Scoreboard from "./Scoreboard"
 import PlayField from "./PlayField";
 
-function BoardScreen(props) {
+function BoardScreen(props: { boardData: Board; competitors: Player[]; myData: Player; setMyData: React.Dispatch<React.SetStateAction<Player>>; HandleUpdates: (data: any) => void; }) {
     if(props.boardData.active === false) return null;
 
     return (
