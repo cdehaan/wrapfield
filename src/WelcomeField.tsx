@@ -1,7 +1,7 @@
 import React from 'react';
 import './index.css';
 
-function WelcomeField(props) {
+function WelcomeField(props: { id: string; text: string; maxLength: number; value: string; UpdateFunction: (value: string) => void; }) {
     return(
         <>
             <span className='WelcomeSpan'>{props.text}</span>
