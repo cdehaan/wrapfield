@@ -44,7 +44,7 @@ function CreateBoard({ active, myData, setMyData, setBoardData}: {active: boolea
         };
       
           //const createBoardResponse = JSON.parse(await SendData("CreateBoard.php", newBoardData));
-          const reply = await SendData("CreateBoard.php", newBoardData);
+          const reply = await SendData("createBoard", newBoardData);
           const createBoardResponse = JSON.parse(reply);
           createBoardResponse.board.active = true
           console.log(createBoardResponse);

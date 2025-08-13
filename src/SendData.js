@@ -1,8 +1,10 @@
-async function SendData(phpFilename, data) {
+const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:8080';
 
-    if(process.env.NODE_ENV === 'development') { phpFilename = 'http://localhost:3000/' + phpFilename; }
-    //if(process.env.NODE_ENV === 'development') { phpFilename = 'http://localhost/wrapfield/public/' + phpFilename; }
-    //else { phpFilename = 'http://localhost/wrapfield/build/' + phpFilename; }
+async function SendData(endpoint, data) {
+    const url = /^https?:\/\//i.test(endpoint) ? endpoint : `${API_BASE.replace(/\/$/, '')}/${endpoint.replace(/^\//, '')}`;
+    // if(process.env.NODE_ENV === 'development') { endpoint = 'http://localhost:3000/' + endpoint; }
+    // if(process.env.NODE_ENV === 'development') { phpFilename = 'http://localhost/wrapfield/public/' + phpFilename; }
+    // else { phpFilename = 'http://localhost/wrapfield/build/' + phpFilename; }
 
     if (data === null || data === undefined) {data = {};}
 
@@ -14,11 +16,11 @@ async function SendData(phpFilename, data) {
     const fetchOptions = {
         method: 'POST',
         cache: 'no-cache',
-        /*body: formData*/
-        body: JSON.stringify(data)
-    }
+        headers: { 'Content-Type': 'application/json' }, // important for php://input
+        body: JSON.stringify(data),
+    };
 
-    const response = await fetch(phpFilename, fetchOptions);
+    const response = await fetch(url, fetchOptions);
 
     if (!response.ok) {
         const message = `Error: ${response.status}`;

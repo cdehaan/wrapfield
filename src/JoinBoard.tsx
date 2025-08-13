@@ -43,7 +43,7 @@ function JoinBoard({ active, myData, setMyData, setBoardData, setCompetitors}: {
             }
         };
     
-        const joinBoardResponse = JSON.parse(await SendData("JoinBoard.php", joinBoardData));
+        const joinBoardResponse = JSON.parse(await SendData("joinBoard", joinBoardData));
         if(joinBoardResponse.error) {
             alert(joinBoardResponse.error);
             return;
