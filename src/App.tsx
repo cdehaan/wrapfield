@@ -2,19 +2,20 @@ import React, { useCallback, useEffect, useState } from 'react';
 import Peer from 'peerjs';
 import GetCookie from './GetCookie';
 import IncorporatePing from './IncorporatePing.mjs';
-import {type Board, type Player, type Heartbeat, type Message, InitialBoard, InitialPlayer} from './types.ts'
+import {type Board, type Player, type Heartbeat, type Message, InitialBoard, InitialPlayer, Ping} from './types.ts'
 
 import './index.css';
 import BoardScreen from './BoardScreen';
 import WelcomeScreen from './WelcomeScreen';
 import IncorporateUpdates from './IncorporateUpdates';
 import { handleResize } from './utils/handleResize.ts';
+import { returnHeartbeat, setupHeartbeats } from './utils/heartbeats.ts';
 
 function App() {
   const [myData, setMyData] = useState<Player>(InitialPlayer);
   const [competitors, setCompetitors] = useState<Player[]>([]);
   const [boardData, setBoardData]   = useState<Board>(InitialBoard);
-  const [pings, setPings] = useState([]) // {playerKey: 1, sent: time, bounced: time, ping: time, skew: percent}
+  const [pings, setPings] = useState<Ping[]>([]) // {playerKey: 1, sent: time, bounced: time, ping: time, skew: percent}
 
 
   // Handle window resize
@@ -82,56 +83,14 @@ function App() {
   }, [competitors]);
 
 
-  // Setup a heartbeat to all competitors
+  // Setup heartbeats to all competitors
   useEffect(() => {
-    const heartbeatsSent:ReturnType<typeof setInterval>[] = [];
-    competitors.forEach((competitor, index) => {
-
-      // Send a heartbeat stage 1 every 3 seconds
-      heartbeatsSent.push(setInterval(() => {
-        setTimeout(() => {
-          const now = Date.now()
-
-          // The actual sending of the heartbeat
-          competitor.conn.send({heartbeat : {
-            stage: 1,
-            playerKey: myData.playerKey,
-            sent: now
-          }});
-
-
-          // Make a record of when we sent it to calculate ping later
-          setPings(currentPings => {
-            const pingEvent = {playerKey: competitor.playerKey, sent: Date.now()}
-            return IncorporatePing(currentPings, pingEvent)
-          })
-
-        }, index*100); // Stagger the heartbeats a little
-      }, 3000));
-    });
-
-    return () => { heartbeatsSent.forEach(heartbeat => { clearInterval(heartbeat) }) }
-  }, [competitors]);
-
-
-  // Return a heartbeat sent by a competitor
-  const ReturnHeartbeat = useCallback((heartbeat: Heartbeat) => {
-    if (!heartbeat) { return; }
-    console.log("competitors: ", competitors);
-    const competitor = competitors.find(comp => comp.playerKey === heartbeat.playerKey);
-
-    if (competitor) {
-      competitor.conn.send({
-        heartbeat: {
-          stage: 2,
-          playerKey: myData.playerKey,
-          bounced: Date.now()
-        }
-      });
-    } else {
-      console.log("Heartbeat could not be returned from player " + heartbeat.playerKey);
+    if(!myData.playerKey) {
+      console.log("No player key set, not setting up heartbeats.");
+      return;
     }
-  }, [competitors, myData.playerKey]); 
+    return setupHeartbeats(competitors, myData.playerKey, setPings, IncorporatePing);
+  }, [competitors, myData.playerKey]);
 
 
   // Read message from another player: text, competitor data, quantum board updates, full board data, heartbeat, or event
@@ -192,13 +151,17 @@ function App() {
     const heartbeat:Heartbeat = data.heartbeat; // {stage: 1, playerKey: 140}
     if(heartbeat) {
       if(competitorKey && heartbeat.playerKey !== competitorKey) { console.log(`Warning: Player Key in heartbeat (${heartbeat.playerKey}) and Player key in connection object (${competitorKey}) don't match.`) }
-
-      // Heartbeat stage 1 received
-      if(heartbeat.stage === 1) {
-        ReturnHeartbeat(heartbeat)
+      if(myData.playerKey === null) {
+        console.log("Warning: Heartbeat received but myData.playerKey is null. This should not happen.");
+        return;
       }
 
-      // Heartbeat stage 2 received
+      // Heartbeat stage 1 received - return it
+      if(heartbeat.stage === 1) {
+        returnHeartbeat(competitors, myData.playerKey, heartbeat);
+      }
+
+      // Heartbeat stage 2 received - process ping data
       if (heartbeat.stage === 2) {
         setPings(currentPings => {
           console.log("Heartbeat stage 2 received from " + heartbeat.playerKey);
@@ -224,7 +187,7 @@ function App() {
       }
     }
 
-  }, [boardData, competitors, ReturnHeartbeat, myData.playerKey]);
+  }, [boardData, competitors, myData.playerKey]);
 
 
   // Calls "IncorporateUpdates" if new cell data comes to calculate new board state given some updates

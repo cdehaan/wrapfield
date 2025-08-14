@@ -106,3 +106,12 @@ export type Message = null | string | {
     heartbeat: Heartbeat,
     event: {type: string}
 }
+
+// {playerKey: 1, sent: time, bounced: time, ping: time, skew: percent}
+export type Ping = {
+    playerKey: number,
+    sent: number,
+    bounced: number,
+    received: number,
+    skew: number,
+}
