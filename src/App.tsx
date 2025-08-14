@@ -12,6 +12,7 @@ import { handleResize } from './utils/handleResize.ts';
 import { returnHeartbeat, setupHeartbeats } from './utils/heartbeats.ts';
 import IncorporatePing from './utils/IncorporatePing.ts';
 import GetCookie from './utils/GetCookie.ts';
+import { request } from 'http';
 
 function App() {
   const [myData, setMyData] = useState<Player>(InitialPlayer);
@@ -68,11 +69,11 @@ function App() {
 
         competitor.conn.on('open', () => {
           competitor.conn.send("Hello from player #" + myData.playerKey);
-    
-          // Received data from them
+
+          // Received any data from them
           competitor.conn.on('data', function(data:Message) { ProcessMessage(data, competitor.playerKey || undefined); });
 
-          // Send our data to them
+          // Send our player data to them
           setTimeout(() => {
             competitor.conn.send({competitor: {
               playerKey: myData.playerKey,
@@ -175,7 +176,9 @@ function App() {
             return currentPings;
           }
           const pingReply: PingReply = {playerKey: heartbeat.playerKey, sent: heartbeat.sent, bounced: heartbeat.bounced};
-          return IncorporatePing(currentPings, pingReply);
+          const incorporatedPing = IncorporatePing(currentPings, pingReply);
+          console.log("Incorporated ping:", incorporatedPing);
+          return incorporatedPing;
         })
       }  
     }

@@ -42,7 +42,7 @@ function Scoreboard({ boardData, myData, competitors, setMyData}: { boardData:Bo
               requestBoard: false
             }});
           }
-    
+
           let cookieDate = new Date();
           cookieDate.setMonth(cookieDate.getMonth()+1);  
           document.cookie = `playerName=${newName}; samesite=lax; expires=${cookieDate.toUTCString()}`;

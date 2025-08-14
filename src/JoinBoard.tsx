@@ -42,18 +42,19 @@ function JoinBoard({ active, myData, setMyData, setBoardData, setCompetitors}: {
                 active: false,
             }
         };
-    
+
         const joinBoardResponse = JSON.parse(await SendData("joinBoard", joinBoardData));
         if(joinBoardResponse.error) {
             alert(joinBoardResponse.error);
             return;
         }
+
         joinBoardResponse.board.cells = JSON.parse(joinBoardResponse.board.cells)
         joinBoardResponse.board.active = true
         console.log(joinBoardResponse)
-    
+
         setBoardData(joinBoardResponse.board);
-    
+
         setMyData(existingPlayerData => { return {...existingPlayerData, ...joinBoardResponse.player}; });
 
         // Exclude myself from the list of competitors
@@ -64,7 +65,6 @@ function JoinBoard({ active, myData, setMyData, setBoardData, setCompetitors}: {
         });
         setCompetitors(newCompetitors);
 
-    
         let cookieDate = new Date();
         cookieDate.setMonth(cookieDate.getMonth()+1);
         if(joinBoardResponse.player.playerKey) { document.cookie = `playerKey=${joinBoardResponse.player.playerKey}; samesite=lax; expires=${cookieDate.toUTCString()}`; }

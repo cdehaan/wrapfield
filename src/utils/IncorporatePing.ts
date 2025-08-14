@@ -45,6 +45,13 @@ function IncorporatePing(currentPings: Ping[], pingEvent: number | PingReply): P
     const skew = returnTrip / roundTrip;
     hangingPing.skew = Math.round(skew * 1000) / 10; // Round to 1 decimal place
 
+    // Drop oldest complete pings if we have more than 10
+    const completePings = playerPings.filter(ping => ping.bounced);
+    if (completePings.length > 10) {
+        const pingsToRemove = completePings.slice(0, completePings.length - 10);
+        currentPings = currentPings.filter(ping => !pingsToRemove.includes(ping));
+    }
+
     return currentPings
 }
 
