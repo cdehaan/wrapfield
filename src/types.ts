@@ -16,6 +16,21 @@ export type Board = {
     stale: boolean
 }
 
+export const InitialBoard: Board = {
+    key: null,
+    code: null,
+    cells: null,
+    width: 10,
+    height: 10,
+    mines: 15,
+    hint: true,
+    safe: null,
+    private: false,
+    wrapfield: false,
+    active: false,
+    stale: false
+};
+
 export type BoardRequest = {
     width: number,
     height: number,
@@ -65,6 +80,16 @@ export type Player = {
     active: boolean,
     requestBoard?: boolean,
 }
+
+export const InitialPlayer: Player = {
+    name: "Anonymous",
+    playerKey: null,
+    peerId: null,
+    peer: null,
+    conn: null,
+    activeConn: false,
+    active: false,
+};
 
 export type Heartbeat = {
     stage:number,

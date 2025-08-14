@@ -15,6 +15,14 @@ function CreateBoard({ active, myData, setMyData, setBoardData}: {active: boolea
     const [height, setHeight] = useState<number|null>(null);
     const [width,  setWidth] = useState<number|null>(null);
 
+    useEffect(() => {
+        if (myData.peerId !== null) {
+            setBoardSettings((existingSettings) => {
+                return {...existingSettings, peerId: myData.peerId || ""};
+            });
+        }
+    }, [myData]);
+
     async function CreateNewGame() {
         // If Peerjs is still connecting, try again in a little while
         if(myData.peerId === null) {

@@ -2,61 +2,26 @@ import React, { useCallback, useEffect, useState } from 'react';
 import Peer from 'peerjs';
 import GetCookie from './GetCookie';
 import IncorporatePing from './IncorporatePing.mjs';
-import type {Board, Player, Heartbeat, Message} from './types.ts'
+import {type Board, type Player, type Heartbeat, type Message, InitialBoard, InitialPlayer} from './types.ts'
 
 import './index.css';
 import BoardScreen from './BoardScreen';
 import WelcomeScreen from './WelcomeScreen';
 import IncorporateUpdates from './IncorporateUpdates';
-
+import { handleResize } from './utils/handleResize.ts';
 
 function App() {
-  const [myData,      setMyData]      = useState<Player>({
-    name: GetCookie("playerName") || "Anonymous",
-    playerKey:null,
-    peerId:null,
-    peer: null,
-    conn: null,
-    activeConn: false,
-    secret: null,
-    active: false,
-  });
-
+  const [myData, setMyData] = useState<Player>(InitialPlayer);
   const [competitors, setCompetitors] = useState<Player[]>([]);
-
-  const [boardData,   setBoardData]   = useState<Board>({
-    key: null,
-    code: null,
-    cells: null,
-    width: 10,
-    height: 10,
-    mines: 15,
-    hint: true,
-    safe: null,
-    private: false,
-    wrapfield: false,
-    active: false,
-    stale: false,
-  });
-
-  const [pings,       setPings]       = useState([]) // {playerKey: 1, sent: time, bounced: time, ping: time, skew: percent}
+  const [boardData, setBoardData]   = useState<Board>(InitialBoard);
+  const [pings, setPings] = useState([]) // {playerKey: 1, sent: time, bounced: time, ping: time, skew: percent}
 
 
   // Handle window resize
   useEffect(() => {
-    function handleResize() {
-      const existingTruevh =  parseFloat(document.documentElement.style.getPropertyValue("--truevh")) || 0;
-      const truevh = window.innerHeight/100;
-      if(truevh > existingTruevh) {
-        document.documentElement.style.setProperty('--truevh', `${truevh}px`);
-      }
-    }
-
-    window.addEventListener("resize", handleResize);
-
     // Initial call on load
     handleResize();
-
+    window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
@@ -85,7 +50,7 @@ function App() {
 
     const peer = new Peer();
     peer.on('open', PeerOpened);
-    setMyData(oldPlayerData => { return {...oldPlayerData, peer: peer} });
+    setMyData(existingPlayerData => { return {...existingPlayerData, peer: peer} });
   }, []);
 
 
@@ -103,20 +68,19 @@ function App() {
     
           // Received data from them
           competitor.conn.on('data', function(data:Message) { ProcessMessage(data, competitor.playerKey || undefined); });
-    
+
           // Send our data to them
           setTimeout(() => {
             competitor.conn.send({competitor: {
-            playerKey: myData.playerKey,
-            name: myData.name,
-            peerId: myData.peerId,
-            //requestBoard: true,
-            time: Date.now() // Currently unused
+              playerKey: myData.playerKey,
+              name: myData.name,
+              peerId: myData.peerId,
             }});
-          }, 50);
+          }, 250);
         });
     });
   }, [competitors]);
+
 
   // Setup a heartbeat to all competitors
   useEffect(() => {
@@ -147,25 +111,27 @@ function App() {
     });
 
     return () => { heartbeatsSent.forEach(heartbeat => { clearInterval(heartbeat) }) }
-
   }, [competitors]);
 
 
   // Return a heartbeat sent by a competitor
-  function ReturnHeartbeat(heartbeat:Heartbeat) {
-    if(!heartbeat) { return; }
+  const ReturnHeartbeat = useCallback((heartbeat: Heartbeat) => {
+    if (!heartbeat) { return; }
+    console.log("competitors: ", competitors);
     const competitor = competitors.find(comp => comp.playerKey === heartbeat.playerKey);
 
-    if(competitor) {
-      competitor.conn.send({heartbeat : {
-        stage: 2,
-        playerKey: myData.playerKey,
-        bounced: Date.now()
-      }});
+    if (competitor) {
+      competitor.conn.send({
+        heartbeat: {
+          stage: 2,
+          playerKey: myData.playerKey,
+          bounced: Date.now()
+        }
+      });
     } else {
-      console.log("Heartbeat could not be returned");
+      console.log("Heartbeat could not be returned from player " + heartbeat.playerKey);
     }
-  }
+  }, [competitors, myData.playerKey]); 
 
 
   // Read message from another player: text, competitor data, quantum board updates, full board data, heartbeat, or event
@@ -177,13 +143,17 @@ function App() {
     // A new competitor joined and is sending us their data. There should already be a placeholder from their connect event
     const newCompetitor = data.competitor;
     if(newCompetitor && newCompetitor.peerId) {
-      console.log("New competitor data received");
+      console.log("New competitor data received", newCompetitor);
+      console.log("Current competitors:", competitors);
       setCompetitors(oldCompetitors => {
         let newCompetitors = [...oldCompetitors];
         const competitorToUpdate = newCompetitors.findIndex(competitor => { return competitor.peerId === newCompetitor.peerId; });
         if(competitorToUpdate === -1) { console.log("New competitor data not incorporated"); console.log(newCompetitor); return newCompetitors; }
 
-        newCompetitors[competitorToUpdate] = {...newCompetitors[competitorToUpdate], ...newCompetitor, active: true};
+        const mergedCompetitor = {...newCompetitors[competitorToUpdate], ...newCompetitor, active: true};
+        console.log("Merged competitor data:", mergedCompetitor);
+
+        newCompetitors[competitorToUpdate] = mergedCompetitor;
         if(newCompetitor.requestBoard) {
           newCompetitors[competitorToUpdate].conn.send("Welcome to Wrapfield");
           newCompetitors[competitorToUpdate].conn.send({board: boardData});
@@ -196,6 +166,7 @@ function App() {
 
         // A reconnecting player will have an old entry in Competitors array. Filter out any competitor with the same player key and different Peer ID
         newCompetitors = newCompetitors.filter(competitor => { return (competitor.peerId === newCompetitor.peerId || competitor.playerKey !== newCompetitor.playerKey); })
+        console.log("Updated competitors:", newCompetitors);
 
         return newCompetitors;
       });
@@ -230,6 +201,7 @@ function App() {
       // Heartbeat stage 2 received
       if (heartbeat.stage === 2) {
         setPings(currentPings => {
+          console.log("Heartbeat stage 2 received from " + heartbeat.playerKey);
           const pingEvent = {playerKey: heartbeat.playerKey, bounced: heartbeat.bounced, received: Date.now()}
           return IncorporatePing(currentPings, pingEvent)
         })
@@ -252,7 +224,7 @@ function App() {
       }
     }
 
-  }, [boardData, competitors]);
+  }, [boardData, competitors, ReturnHeartbeat, myData.playerKey]);
 
 
   // Calls "IncorporateUpdates" if new cell data comes to calculate new board state given some updates
