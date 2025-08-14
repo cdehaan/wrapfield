@@ -60,7 +60,6 @@ export function returnHeartbeat(
     return;
   }
 
-  console.log("competitors: ", competitors);
   const competitor = competitors.find(comp => comp.playerKey === heartbeat.playerKey);
 
   if (competitor) {

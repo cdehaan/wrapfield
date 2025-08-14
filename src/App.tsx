@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Peer from 'peerjs';
 import GetCookie from './GetCookie';
 import IncorporatePing from './IncorporatePing.mjs';
@@ -16,7 +16,7 @@ function App() {
   const [competitors, setCompetitors] = useState<Player[]>([]);
   const [boardData, setBoardData]   = useState<Board>(InitialBoard);
   const [pings, setPings] = useState<Ping[]>([]) // {playerKey: 1, sent: time, bounced: time, ping: time, skew: percent}
-
+  const competitorsRef = useRef<Player[]>([]);
 
   // Handle window resize
   useEffect(() => {
@@ -82,6 +82,9 @@ function App() {
     });
   }, [competitors]);
 
+  useEffect(() => {
+    competitorsRef.current = competitors;
+  }, [competitors]);
 
   // Setup heartbeats to all competitors
   useEffect(() => {
@@ -158,7 +161,7 @@ function App() {
 
       // Heartbeat stage 1 received - return it
       if(heartbeat.stage === 1) {
-        returnHeartbeat(competitors, myData.playerKey, heartbeat);
+        returnHeartbeat(competitorsRef.current, myData.playerKey, heartbeat);
       }
 
       // Heartbeat stage 2 received - process ping data
