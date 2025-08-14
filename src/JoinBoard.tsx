@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import type {Board, Player, JoinRequest} from './types.ts'
 import './index.css';
-import GetCookie from './GetCookie';
-import SendData from './SendData';
+import GetCookie from './utils/GetCookie.ts';
+import SendData from './utils/SendData.js';
 
 import WelcomeField from './WelcomeField';
 

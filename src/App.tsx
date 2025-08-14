@@ -1,15 +1,17 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Peer from 'peerjs';
-import GetCookie from './GetCookie';
-import IncorporatePing from './IncorporatePing.mjs';
-import {type Board, type Player, type Heartbeat, type Message, InitialBoard, InitialPlayer, Ping} from './types.ts'
+
+import {Board, Player, Heartbeat, Message, InitialBoard, InitialPlayer, Ping, PingReply} from './types.ts'
 
 import './index.css';
 import BoardScreen from './BoardScreen';
 import WelcomeScreen from './WelcomeScreen';
-import IncorporateUpdates from './IncorporateUpdates';
+
+import IncorporateUpdates from './utils/IncorporateUpdates.js';
 import { handleResize } from './utils/handleResize.ts';
 import { returnHeartbeat, setupHeartbeats } from './utils/heartbeats.ts';
+import IncorporatePing from './utils/IncorporatePing.ts';
+import GetCookie from './utils/GetCookie.ts';
 
 function App() {
   const [myData, setMyData] = useState<Player>(InitialPlayer);
@@ -92,7 +94,7 @@ function App() {
       console.log("No player key set, not setting up heartbeats.");
       return;
     }
-    return setupHeartbeats(competitors, myData.playerKey, setPings, IncorporatePing);
+    return setupHeartbeats({competitors, myPlayerKey: myData.playerKey, setPings, IncorporatePing});
   }, [competitors, myData.playerKey]);
 
 
@@ -167,9 +169,13 @@ function App() {
       // Heartbeat stage 2 received - process ping data
       if (heartbeat.stage === 2) {
         setPings(currentPings => {
-          console.log("Heartbeat stage 2 received from " + heartbeat.playerKey);
-          const pingEvent = {playerKey: heartbeat.playerKey, bounced: heartbeat.bounced, received: Date.now()}
-          return IncorporatePing(currentPings, pingEvent)
+          //console.log("Heartbeat stage 2 received from " + heartbeat.playerKey);
+          if(!heartbeat.bounced || !heartbeat.sent) {
+            console.log(`Warning: Heartbeat received but bounced (${heartbeat.bounced}) or sent time (${heartbeat.sent}) is missing.`);
+            return currentPings;
+          }
+          const pingReply: PingReply = {playerKey: heartbeat.playerKey, sent: heartbeat.sent, bounced: heartbeat.bounced};
+          return IncorporatePing(currentPings, pingReply);
         })
       }  
     }

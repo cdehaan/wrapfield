@@ -94,9 +94,9 @@ export const InitialPlayer: Player = {
 export type Heartbeat = {
     stage:number,
     playerKey:number,
-    sent?: Date,
-    bounced?: Date,
-    received?: Date
+    sent?: number,
+    bounced?: number,
+    received?: number,
 }
 
 export type Message = null | string | {
@@ -108,10 +108,17 @@ export type Message = null | string | {
 }
 
 // {playerKey: 1, sent: time, bounced: time, ping: time, skew: percent}
+// A ping that has been sent but not answered will only have playerKey and sent
 export type Ping = {
     playerKey: number,
     sent: number,
+    bounced?: number,
+    received?: number,
+    skew?: number,
+}
+
+export type PingReply = {
+    playerKey: number,
+    sent: number,
     bounced: number,
-    received: number,
-    skew: number,
 }

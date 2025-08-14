@@ -2,8 +2,8 @@ import './index.css';
 import React, { useEffect, useState } from 'react';
 import type {Board, Player, BoardRequest } from './types.ts'
 
-import GetCookie from './GetCookie';
-import SendData from './SendData';
+import GetCookie from './utils/GetCookie.ts';
+import SendData from './utils/SendData.js';
 
 function CreateBoard({ active, myData, setMyData, setBoardData}: {active: boolean, myData:Player, setMyData:React.Dispatch<React.SetStateAction<Player>>, setBoardData:React.Dispatch<React.SetStateAction<Board>> }) {
     const playerKey    = parseInt(GetCookie("playerKey") || "0") || null

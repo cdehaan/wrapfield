@@ -1,15 +1,17 @@
-import { Player, Heartbeat } from '../types';
+import { Player, Heartbeat, Ping, PingReply } from '../types';
+
+type setupHeartbeatsParams = {
+  competitors: Player[],
+  myPlayerKey: number,
+  setPings: (updater: (currentPings: Ping[]) => Ping[]) => void,
+  IncorporatePing: (currentPings: Ping[], newPing: number | PingReply) => Ping[]
+}
 
 /**
  * Sets up heartbeat intervals for all competitors
  * Returns a cleanup function to clear all intervals
  */
-export function setupHeartbeats(
-  competitors: Player[],
-  myPlayerKey: number,
-  setPings: (updater: (currentPings: any[]) => any[]) => void,
-  IncorporatePing: (currentPings: any[], pingEvent: any) => any[]
-): () => void {
+export function setupHeartbeats({ competitors, myPlayerKey, setPings, IncorporatePing }: setupHeartbeatsParams): () => void {
   const heartbeatIntervals: ReturnType<typeof setInterval>[] = [];
 
   competitors.forEach((competitor, index) => {
@@ -29,8 +31,8 @@ export function setupHeartbeats(
 
         // Make a record of when we sent it to calculate ping later
         setPings(currentPings => {
-          const pingEvent = { playerKey: competitor.playerKey, sent: Date.now() };
-          return IncorporatePing(currentPings, pingEvent);
+          if(competitor.playerKey === null) { return currentPings; }
+          return IncorporatePing(currentPings, competitor.playerKey);
         });
 
       }, index * 100); // Stagger the heartbeats a little
@@ -51,22 +53,18 @@ export function setupHeartbeats(
  * Returns a heartbeat to the competitor who sent it
  * This function gets the most current competitors array as a parameter
  */
-export function returnHeartbeat(
-  competitors: Player[],
-  myPlayerKey: number,
-  heartbeat: Heartbeat
-): void {
-  if (!heartbeat) {
-    return;
-  }
+export function returnHeartbeat(competitors: Player[], myPlayerKey: number, heartbeat: Heartbeat): void {
+  if (!heartbeat) { return; }
 
   const competitor = competitors.find(comp => comp.playerKey === heartbeat.playerKey);
 
   if (competitor) {
+    //console.log("Returning heartbeat:", heartbeat);
     competitor.conn.send({
       heartbeat: {
         stage: 2,
         playerKey: myPlayerKey,
+        sent: heartbeat.sent, // This is like an ID for the ping, so send it back
         bounced: Date.now()
       }
     });

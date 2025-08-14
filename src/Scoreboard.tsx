@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import type {Board, Cell, Player} from './types.ts'
 
-import GetCookie from "./GetCookie";
+import GetCookie from "./utils/GetCookie.ts";
 
 function Scoreboard({ boardData, myData, competitors, setMyData}: { boardData:Board, myData:Player, competitors:Player[], setMyData:React.Dispatch<React.SetStateAction<Player>> }) {
     const scoreboard = [];
