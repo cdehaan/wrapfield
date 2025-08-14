@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import Peer from 'peerjs';
 import GetCookie from './GetCookie';
 import IncorporatePing from './IncorporatePing.mjs';
-import type {Board, Player, Heartbeat, Message} from './.d.ts'
+import type {Board, Player, Heartbeat, Message} from './types.ts'
 
 import './index.css';
 import BoardScreen from './BoardScreen';
@@ -32,7 +32,7 @@ function App() {
     height: 10,
     mines: 15,
     hint: true,
-    safe: true,
+    safe: null,
     private: false,
     wrapfield: false,
     active: false,

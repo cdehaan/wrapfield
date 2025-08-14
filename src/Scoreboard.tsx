@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import type {Board, Cell, Player} from './.d.ts'
+import type {Board, Cell, Player} from './types.ts'
 
 import GetCookie from "./GetCookie";
 

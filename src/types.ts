@@ -6,7 +6,7 @@ export type Board = {
     height: number,
     mines: number,
     hint: boolean,
-    safe: boolean,
+    safe: null | { y: number, x: number },
     private: boolean,
     secret?: string,
     wrapfield: boolean,
@@ -16,19 +16,35 @@ export type Board = {
     stale: boolean
 }
 
+export type BoardRequest = {
+    width: number,
+    height: number,
+    mines: number,
+    hint: boolean,
+    safe: boolean,
+    private: boolean,
+    wrapfield: boolean,
+    peerId: string,
+    name: string,
+    playerKey: number | null, // Will be null for new players
+    secret: string | null,    // Will be null for new players
+}
+
 export type Cell = {
     x: number,
     y: number,
     owner: number[],
     state: string,
     neighbours: number, // How many mines around this cell
-    scored: boolean
+    scored: boolean | null, // null means no one has done anything to this cell
 }
 
-
-export type BoardRequest = {
-    board: Board
-    player: Player
+export type CellUpdate = {
+    x: number,
+    y: number,
+    owner: number,
+    state: string,
+    scored: boolean | null,
 }
 
 export type JoinRequest = {

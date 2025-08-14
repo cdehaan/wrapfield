@@ -3,8 +3,9 @@ import { QRCode } from 'react-qrcode-logo';
 import './index.css';
 import TouchToggle from './TouchToggle';
 import Timer from './Timer';
+import type {Board, Player, Cell, CellUpdate} from './types.ts'
 
-function PlayField(props) {
+function PlayField(props: { boardData: Board; competitors: Player[]; myData: Player; HandleUpdates: (data: any) => void; }) {
   const [displayQR, setDisplayQR] = useState(false);
 
   const competitors = props.competitors
@@ -32,12 +33,12 @@ function PlayField(props) {
 
   const gameComplete = remainingSafe === 0 && remainingFlags === 0;
 
-  let localUpdates = [];
+  let localUpdates: CellUpdate[] = [];
 
-  function GetNeighbours(cell) {
-    const neighbourCells = [];
-    const height = boardData.cells.length;
-    const width = boardData.cells[0].length;
+  function GetNeighbours(cell: Cell) {
+    const neighbourCells: Cell[] = [];
+    const height = boardData.cells?.length || 0;
+    const width = boardData.cells?.[0].length || 0;
 
     for (let yNeighbour = -1; yNeighbour <= 1; yNeighbour++) {
       if(!wrapfield && yNeighbour+cell.y < 0) { continue; }
@@ -48,17 +49,24 @@ function PlayField(props) {
         if(yNeighbour === 0 && xNeighbour === 0) { continue; }
         const wrappedY = ((yNeighbour+cell.y) % height + height) % height;
         const wrappedX = ((xNeighbour+cell.x) % width  + width)  % width;
-        neighbourCells.push(boardData.cells[wrappedY][wrappedX]);
+        if(boardData.cells) {
+          neighbourCells.push(boardData.cells[wrappedY][wrappedX]);
+        }
       }
     }
     return neighbourCells;
   }
 
-  function TileContextMenu(event) {
+  function TileContextMenu(event: React.MouseEvent) {
     event.preventDefault();
-    const tile = event.target;
-    const tileY = parseInt(tile.getAttribute("y"));
-    const tileX = parseInt(tile.getAttribute("x"));
+    if(!boardData.cells) { return; }
+    if(!myData.playerKey) { return; }
+
+    const tile = event.target as HTMLElement;
+    if (!tile.getAttribute) { return; } // Safety check
+
+    const tileY = parseInt(tile.getAttribute("data-y") || "0");
+    const tileX = parseInt(tile.getAttribute("data-x") || "0");
     const cell = boardData.cells[tileY][tileX];
     const cellOwner = cell.owner;
     const cellState = cell.state;
@@ -100,11 +108,15 @@ function PlayField(props) {
     return false;
   }
 
-  function TileDoubleClick(event) {
-    const flagging = document.getElementById('TouchToggle').getAttribute("flagging") === "on" ? true : false;
-    const tile = event.target;
-    const tileY = parseInt(tile.getAttribute("y"));
-    const tileX = parseInt(tile.getAttribute("x"));
+  function TileDoubleClick(event: React.MouseEvent) {
+    if(!boardData.cells) { return; }
+
+    const flagging = document.getElementById('TouchToggle')?.getAttribute("data-flagging") === "on" ? true : false;
+    const tile = event.target as HTMLElement;
+    if (!tile.getAttribute) { return; }
+
+    const tileY = parseInt(tile.getAttribute("data-y") || "0");
+    const tileX = parseInt(tile.getAttribute("data-x") || "0");
     const cell = boardData.cells[tileY][tileX];
     const cellState = cell.state;
 
@@ -122,30 +134,36 @@ function PlayField(props) {
     BroadcastUpdates(localUpdates);
   }
 
-  function TileClicked(event) {
+  function TileClicked(event: React.MouseEvent) {
+    if(!boardData.cells) { return; }
+
     // Can't clear a tile when the game is done
     if(gameComplete === true) { return }
 
-    const tile = event.target;
-    const tileY = parseInt(tile.getAttribute("y"));
-    const tileX = parseInt(tile.getAttribute("x"));
+    const tile = event.target as HTMLElement;
+    if (!tile.getAttribute) { return; }
+
+    const tileY = parseInt(tile.getAttribute("data-y") || "0");
+    const tileX = parseInt(tile.getAttribute("data-x") || "0");
     const cell = boardData.cells[tileY][tileX];
     RevealCell(cell);
   }
 
-  function RevealCell(cell) {
-    const flagging = document.getElementById('TouchToggle').getAttribute("flagging") === "on" ? true : false;
+  function RevealCell(cell: Cell) {
+    if(!myData.playerKey) { return; }
+
+    const flagging = document.getElementById('TouchToggle')?.getAttribute("flagging") === "on" ? true : false;
     const cellOwner = cell.owner;
     const cellState = cell.state;
 
     if(flagging) {
       if(cellState === "s") { // Unknown (safe) -> make dud
-        const oneUpdate = {y: cell.y, x: cell.x, owner:myData.playerKey, state: "d", scored: true};
+        const oneUpdate: CellUpdate = {y: cell.y, x: cell.x, owner:myData.playerKey, state: "d", scored: true};
         localUpdates.push(oneUpdate);
       }
 
       if(cellState === "m") { // Unknown (mine) -> place true flag
-        const oneUpdate = {y: cell.y, x: cell.x, owner:myData.playerKey, state: "f", scored: true};
+        const oneUpdate: CellUpdate = {y: cell.y, x: cell.x, owner:myData.playerKey, state: "f", scored: true};
         localUpdates.push(oneUpdate);
       }
 
@@ -197,7 +215,9 @@ function PlayField(props) {
     BroadcastUpdates(localUpdates);
   }
 
-  function DeepClick(cell) {
+  function DeepClick(cell: Cell) {
+    if(!myData.playerKey) { return; }
+
     const cellOwner = cell.owner;
     const cellY = cell.y;
     const cellX = cell.x;
@@ -205,7 +225,7 @@ function PlayField(props) {
     // Another player has claimed this cell, we can't change it in a deep click
     if(cellOwner !== null) { return; }
 
-    const oneUpdate = {y: cellY, x: cellX, owner: myData.playerKey, state: "c", scored: false};
+    const oneUpdate: CellUpdate = {y: cellY, x: cellX, owner: myData.playerKey, state: "c", scored: false};
     localUpdates.push(oneUpdate);
 
     if(cell.neighbours === 0) {
@@ -234,7 +254,7 @@ function PlayField(props) {
   }
 
   // Send updates (tile clicks) to all other players
-  function BroadcastUpdates(localUpdates) {
+  function BroadcastUpdates(localUpdates: CellUpdate[]) {
     if(!localUpdates || localUpdates.length === 0) { return; }
     for(const competitor of competitors) {
       competitor.conn.send({updates: {cellUpdates: localUpdates}});
@@ -247,7 +267,7 @@ function PlayField(props) {
   const gameStateDiv = gameComplete ? <>🎉<div className='NewGameButton' onClick={NewGame}>New Game</div></> : `🚩: ${remainingFlags}`
 
   const tiles = [];
-  if(boardData && boardData.cells) {
+  if(boardData && boardData.cells && myData.playerKey) {
     for (let y=0; y<height; y++) {
       for(let x=0; x<width; x++) {
           const cell = boardData.cells[y][x];
@@ -258,7 +278,7 @@ function PlayField(props) {
           const tileText = (cellState === "d" || cellState === "f") ? "🚩" : (cellState === "m" || cellState === "e") ? "💣" : boardData.cells[y][x].neighbours > 0 ? boardData.cells[y][x].neighbours : isSafe ? "◎" : "";
           const stateClassName = isSafe ? "Safe" : cellOwner === null ? "Unknown" : (cellState === "d" || cellState === "f") ? "Flagged" : cellState === "c" ? "Cleared" : "Exploded";
           const ownerClassName = cellOwner === null ? "" : cellOwner.includes(myData.playerKey) ? "MyTile" : "CompetitorTile";
-          const oneTile = <div key={`x${x}y${y}`} x={x} y={y} className={`Cell ${stateClassName} ${ownerClassName}`} onContextMenu={TileContextMenu} onClick={TileClicked} onDoubleClick={TileDoubleClick}>{tileText}</div>
+          const oneTile = <div key={`x${x}y${y}`} data-x={x} data-y={y}  className={`Cell ${stateClassName} ${ownerClassName}`} onContextMenu={TileContextMenu} onClick={TileClicked} onDoubleClick={TileDoubleClick}>{tileText}</div>
           tiles.push(oneTile);
       }
     }

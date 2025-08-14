@@ -1,12 +1,15 @@
 import './index.css';
 import React, { useEffect, useState } from 'react';
-import type {Board, Player, BoardRequest} from './.d.ts'
+import type {Board, Player, BoardRequest } from './types.ts'
 
 import GetCookie from './GetCookie';
 import SendData from './SendData';
 
 function CreateBoard({ active, myData, setMyData, setBoardData}: {active: boolean, myData:Player, setMyData:React.Dispatch<React.SetStateAction<Player>>, setBoardData:React.Dispatch<React.SetStateAction<Board>> }) {
-    const [boardSettings, setBoardSettings] = useState<Board>({key: null, code: null, cells: null, width: 10, height: 10, mines: 15, private: false, active: false, wrapfield: false, hint:true, safe: true, stale: false});
+    const playerKey    = parseInt(GetCookie("playerKey") || "0") || null
+    const playerSecret = GetCookie("playerSecret") || null
+
+    const [boardSettings, setBoardSettings] = useState<BoardRequest>({ width: 10, height: 10, mines: 15, private: false, wrapfield: false, hint:true, safe: true, peerId: myData.peerId || "", name: myData.name || "", playerKey: myData.playerKey || playerKey, secret: myData.secret || playerSecret });
 
     // Size of the component, not the gameboard size. CSS won't animate from "auto".
     const [height, setHeight] = useState<number|null>(null);
@@ -21,42 +24,20 @@ function CreateBoard({ active, myData, setMyData, setBoardData}: {active: boolea
             }, 500);
             return;
         }
-
-        boardSettings.width  = Math.max(4, Math.min(30, boardSettings.width))
-        boardSettings.height = Math.max(4, Math.min(30, boardSettings.height))
-        boardSettings.mines  = Math.max(3, Math.min(boardSettings.width*boardSettings.height-1, boardSettings.mines))
-
-        const playerKey    = GetCookie("playerKey")
-        const playerSecret = GetCookie("playerSecret")
-
-        const newBoardData:BoardRequest = {
-            board: boardSettings,
-            player: {
-                peerId: myData.peerId,
-                name: myData.name || "Anonymous",
-                playerKey: playerKey === null ? null : parseInt(playerKey),  // Will be null for new players
-                secret: playerSecret,                                        // Will be null for new players
-                peer: null, // Not needed for board request
-                conn: null, // Not needed for board request
-                activeConn: false,
-                active: false,
-            }
-        };
       
-          //const createBoardResponse = JSON.parse(await SendData("CreateBoard.php", newBoardData));
-          const reply = await SendData("createBoard", newBoardData);
-          const createBoardResponse = JSON.parse(reply);
-          createBoardResponse.board.active = true
-          console.log(createBoardResponse);
-      
-          setBoardData(createBoardResponse.board);
-      
-          setMyData(existingPlayerData => { return {...existingPlayerData, ...createBoardResponse.player}; });
-      
-          let cookieDate = new Date();
-          cookieDate.setMonth(cookieDate.getMonth()+1);
-          if(createBoardResponse.player.playerKey) { document.cookie = `playerKey=${createBoardResponse.player.playerKey}; samesite=lax; expires=${cookieDate.toUTCString()}`; }
-          if(createBoardResponse.player.secret)    { document.cookie = `playerSecret=${createBoardResponse.player.secret}; samesite=lax; expires=${cookieDate.toUTCString()}`; }
+        const reply = await SendData("createBoard", boardSettings);
+        const createBoardResponse = JSON.parse(reply);
+        createBoardResponse.board.active = true
+        console.log(createBoardResponse);
+    
+        setBoardData(createBoardResponse.board);
+    
+        setMyData(existingPlayerData => { return {...existingPlayerData, ...createBoardResponse.player}; });
+    
+        let cookieDate = new Date();
+        cookieDate.setMonth(cookieDate.getMonth()+1);
+        if(createBoardResponse.player.playerKey) { document.cookie = `playerKey=${createBoardResponse.player.playerKey}; samesite=lax; expires=${cookieDate.toUTCString()}`; }
+        if(createBoardResponse.player.secret)    { document.cookie = `playerSecret=${createBoardResponse.player.secret}; samesite=lax; expires=${cookieDate.toUTCString()}`; }
     }
 
     function HandleWrapfieldChange(wrapBool:boolean) { HandleBoardChange("wrapfield",  wrapBool); }
@@ -77,9 +58,6 @@ function CreateBoard({ active, myData, setMyData, setBoardData}: {active: boolea
         if(updateField === undefined) { console.log("Error: unknown board field update."); return; }
 
         const newboardData = {...boardSettings};
-
-        // The pre-TypeScript solution
-        //newboardData[field] = value;
 
         switch (field) {
             case "size":
@@ -113,6 +91,10 @@ function CreateBoard({ active, myData, setMyData, setBoardData}: {active: boolea
                 newboardData.hint = value;
                 break;
         }
+
+        newboardData.width  = Math.max(4, Math.min(30, newboardData.width))
+        newboardData.height = Math.max(4, Math.min(30, newboardData.height))
+        newboardData.mines  = Math.max(3, Math.min(newboardData.width*newboardData.height-1, newboardData.mines))
 
         setBoardSettings(newboardData);
         return;

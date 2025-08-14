@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import type {Board, Player, JoinRequest} from './.d.ts'
+import type {Board, Player, JoinRequest} from './types.ts'
 import './index.css';
 import GetCookie from './GetCookie';
 import SendData from './SendData';

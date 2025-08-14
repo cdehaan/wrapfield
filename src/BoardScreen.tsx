@@ -1,5 +1,5 @@
 import React from "react"
-import type {Board, Player} from './.d.ts'
+import type {Board, Player} from './types.ts'
 
 import Scoreboard from "./Scoreboard"
 import PlayField from "./PlayField";
