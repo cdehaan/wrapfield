@@ -61,9 +61,6 @@ function JoinBoard({ active, myData, setMyData, setBoardData, setCompetitors}: {
         newCompetitors.forEach((competitor:Player) => {
             competitor.activeConn = false;
             competitor.conn = myData.peer.connect(competitor.peerId);
-            competitor.conn.on('open', () => {
-                competitor.conn.send({requestBoard: true});
-            });
         });
         setCompetitors(newCompetitors);
 

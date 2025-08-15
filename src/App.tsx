@@ -19,7 +19,7 @@ function App() {
 
   const [myData, setMyData] = useState<Player>(InitialPlayer);
   const [competitors, setCompetitors] = useState<Player[]>([]);
-  const [boardData, setBoardData]   = useState<Board>(InitialBoard);
+  const [boardData, setBoardData] = useState<Board>(InitialBoard);
   const competitorsRef = useRef<Player[]>([]);
 
 
@@ -82,10 +82,10 @@ function App() {
               name: myData.name,
               peerId: myData.peerId,
             }, requestBoard: true});
-          }, 250);
+          }, 50);
         });
     });
-  }, [competitors]);
+  }, [competitors, boardData]);
 
   useEffect(() => {
     competitorsRef.current = competitors;
@@ -157,9 +157,14 @@ function App() {
         return;
     }
 
+    // Full board data received
     const board = data.board;
     if(board) {
       console.log("Entire board data received");
+      if(boardData.key) {
+        console.log("Board data received but already exists locally. Ignored.");
+        return;
+      }
       setBoardData(oldBoardData => {
         const newBoardData = {...oldBoardData, ...board};
         newBoardData.start = null;  if(newBoardData.start) { newBoardData.start = new Date(newBoardData.start); }
@@ -168,6 +173,7 @@ function App() {
       });
     }
 
+    // Heartbeat received
     const heartbeat:Heartbeat = data.heartbeat; // {stage: 1, playerKey: 140}
     if(heartbeat) {
       if(competitorKey && heartbeat.playerKey !== competitorKey) { console.log(`Warning: Player Key in heartbeat (${heartbeat.playerKey}) and Player key in connection object (${competitorKey}) don't match.`) }
@@ -242,8 +248,8 @@ function App() {
     const competitorPlaceholder = {name: null, playerKey: null, peerId: conn.peer, peer: null, conn: conn, activeConn: false, active: false};
     setCompetitors(oldCompetitors => { return [...oldCompetitors, competitorPlaceholder] });
 
-    // Don't send board data automatically
-    // conn.send({board: boardData});
+    // Send board data automatically
+    conn.send({board: boardData});
 
   }, [ProcessMessage]);
 

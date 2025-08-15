@@ -51,7 +51,10 @@ export type Cell = {
     owner: number[],
     state: string,
     neighbours: number, // How many mines around this cell
-    scored: boolean | null, // null means no one has done anything to this cell
+
+    // null means no one has done anything to this cell
+    // false is needed because if a user taps a clear space and opens a huge patch of the board, they shouldn't get all the points of the uncovered cells
+    scored: boolean | null,
 }
 
 export type CellUpdate = {
