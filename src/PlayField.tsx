@@ -1,12 +1,19 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { QRCode } from 'react-qrcode-logo';
 import './index.css';
-import TouchToggle from './TouchToggle';
 import Timer from './Timer';
 import type {Board, Player, Cell, CellUpdate} from './types.ts'
 
 function PlayField(props: { boardData: Board; competitors: Player[]; myData: Player; HandleUpdates: (data: any) => void; }) {
   const [displayQR, setDisplayQR] = useState(false);
+  const [flagging, setFlagging] = useState(false);  // For UI updates
+  const flaggingRef = useRef(flagging);             // For event handlers
+
+  function ToggleFlagging() { 
+    const newValue = !flaggingRef.current;
+    flaggingRef.current = newValue;  // Update ref immediately
+    setFlagging(newValue);           // Trigger re-render for UI
+  }
 
   const competitors = props.competitors
 
@@ -60,7 +67,6 @@ function PlayField(props: { boardData: Board; competitors: Player[]; myData: Pla
   function TileContextMenu(event: React.MouseEvent) {
     event.preventDefault();
     if(!boardData.cells) { return; }
-    if(!myData.playerKey) { return; }
 
     const tile = event.target as HTMLElement;
     if (!tile.getAttribute) { return; } // Safety check
@@ -68,6 +74,14 @@ function PlayField(props: { boardData: Board; competitors: Player[]; myData: Pla
     const tileY = parseInt(tile.getAttribute("data-y") || "0");
     const tileX = parseInt(tile.getAttribute("data-x") || "0");
     const cell = boardData.cells[tileY][tileX];
+    FlagCell(cell);
+
+    return false;
+  }
+
+  function FlagCell(cell: Cell) {
+    if(!myData.playerKey) { return; }
+
     const cellOwner = cell.owner;
     const cellState = cell.state;
 
@@ -105,13 +119,11 @@ function PlayField(props: { boardData: Board; competitors: Player[]; myData: Pla
     }
 
     BroadcastUpdates(localUpdates);
-    return false;
   }
 
   function TileDoubleClick(event: React.MouseEvent) {
     if(!boardData.cells) { return; }
 
-    const flagging = document.getElementById('TouchToggle')?.getAttribute("data-flagging") === "on" ? true : false;
     const tile = event.target as HTMLElement;
     if (!tile.getAttribute) { return; }
 
@@ -127,7 +139,7 @@ function PlayField(props: { boardData: Board; competitors: Player[]; myData: Pla
     if(cellState !== "c") { return; }
 
     // Can only double click while clearing
-    if(flagging) { return; }
+    if(flaggingRef.current) { return; }
 
     const neighbourCells = GetNeighbours(cell);
     neighbourCells.forEach(cell => { if(["s","m"].includes(cell.state)) {RevealCell(cell);} });
@@ -146,17 +158,21 @@ function PlayField(props: { boardData: Board; competitors: Player[]; myData: Pla
     const tileY = parseInt(tile.getAttribute("data-y") || "0");
     const tileX = parseInt(tile.getAttribute("data-x") || "0");
     const cell = boardData.cells[tileY][tileX];
-    RevealCell(cell);
+
+    if(flaggingRef.current) {
+      FlagCell(cell);
+    } else {
+      RevealCell(cell);
+    }
   }
 
   function RevealCell(cell: Cell) {
     if(!myData.playerKey) { return; }
 
-    const flagging = document.getElementById('TouchToggle')?.getAttribute("flagging") === "on" ? true : false;
     const cellOwner = cell.owner;
     const cellState = cell.state;
 
-    if(flagging) {
+    if(flaggingRef.current) {
       if(cellState === "s") { // Unknown (safe) -> make dud
         const oneUpdate: CellUpdate = {y: cell.y, x: cell.x, owner:myData.playerKey, state: "d", scored: true};
         localUpdates.push(oneUpdate);
@@ -290,7 +306,7 @@ function PlayField(props: { boardData: Board; competitors: Player[]; myData: Pla
           <div className='BoardInfo'><img className="BoardInfoImage" alt='QR Code' src="QrIcon.svg" onClick={ToggleDisplayQR}/>{displayQR ? <span className='BoardInfoUrl'>{`https://wrapfield.com/?code=${boardData.code}`}</span> : <><div style={{display:"flex", alignItems:"center"}}>{gameStateDiv}</div><span><Timer start={boardData.start} end={boardData.end}></Timer></span></>}</div>
           <div className='GameBoard' style={gameboardStyle}>{tiles}{displayQR && <div className='QRWrapper'> <QRCode id='QRCode' size={280} value={`https://wrapfield.com/?code=${boardData.code}`} /></div>}</div>
         </div>
-        <TouchToggle />
+        <div id='TouchToggle' className={`TouchToggle ${flagging ? "ToggleFlagging" : "ToggleClearing"}`} onClick={ToggleFlagging}>{flagging ? "Flagging 🚩" : "Clearing ⛏️"}</div>
       </>
   );
 }
