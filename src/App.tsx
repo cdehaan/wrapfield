@@ -10,16 +10,18 @@ import WelcomeScreen from './WelcomeScreen';
 import IncorporateUpdates from './utils/IncorporateUpdates.js';
 import { handleResize } from './utils/handleResize.ts';
 import { returnHeartbeat, setupHeartbeats } from './utils/heartbeats.ts';
-import IncorporatePing from './utils/IncorporatePing.ts';
 import GetCookie from './utils/GetCookie.ts';
-import { request } from 'http';
+import { useAppDispatch } from './store/hooks'
+import { addNewPing, addPingReply } from './store/timingSlice'
 
 function App() {
+  const dispatch = useAppDispatch()
+
   const [myData, setMyData] = useState<Player>(InitialPlayer);
   const [competitors, setCompetitors] = useState<Player[]>([]);
   const [boardData, setBoardData]   = useState<Board>(InitialBoard);
-  const [pings, setPings] = useState<Ping[]>([]) // {playerKey: 1, sent: time, bounced: time, ping: time, skew: percent}
   const competitorsRef = useRef<Player[]>([]);
+
 
   // Handle window resize
   useEffect(() => {
@@ -79,7 +81,7 @@ function App() {
               playerKey: myData.playerKey,
               name: myData.name,
               peerId: myData.peerId,
-            }});
+            }, requestBoard: true});
           }, 250);
         });
     });
@@ -95,15 +97,16 @@ function App() {
       console.log("No player key set, not setting up heartbeats.");
       return;
     }
-    return setupHeartbeats({competitors, myPlayerKey: myData.playerKey, setPings, IncorporatePing});
-  }, [competitors, myData.playerKey]);
-
+    // setupHeartbeats returns its own cleanup function
+    return setupHeartbeats({competitors, myPlayerKey: myData.playerKey, dispatchNewPing: (playerKey: number) => dispatch(addNewPing(playerKey))});
+  }, [competitors, myData.playerKey, dispatch]);
 
   // Read message from another player: text, competitor data, quantum board updates, full board data, heartbeat, or event
   const ProcessMessage = useCallback((data:Message, competitorKey?:number) => {
     if(typeof(data) === "string") { console.log("Message: " + data); return; }
     if(typeof(data) !== "object") { console.log("Data: " + data);    return; }
     if(data === null) { console.log("Got an empty data message.");   return; }
+    let boardSent = false;
 
     // A new competitor joined and is sending us their data. There should already be a placeholder from their connect event
     const newCompetitor = data.competitor;
@@ -119,9 +122,10 @@ function App() {
         console.log("Merged competitor data:", mergedCompetitor);
 
         newCompetitors[competitorToUpdate] = mergedCompetitor;
-        if(newCompetitor.requestBoard) {
+        if(data.requestBoard) {
           newCompetitors[competitorToUpdate].conn.send("Welcome to Wrapfield");
           newCompetitors[competitorToUpdate].conn.send({board: boardData});
+          boardSent = true;
         }
 
         newCompetitors[competitorToUpdate].conn.removeAllListeners('data');
@@ -141,6 +145,16 @@ function App() {
     if(updates) {
       console.log("Remote updates received");
       HandleUpdates(updates);
+    }
+
+    // Competitor is requesting the board data, we know the competitor's key and the board wasn't already sent
+    if(data.requestBoard && competitorKey && !boardSent) {
+        console.log("Board request received from competitor: ", competitorKey);
+        const requestingCompetitor = competitors.find(comp => comp.playerKey === competitorKey);
+        if(requestingCompetitor && requestingCompetitor.conn) {
+            requestingCompetitor.conn.send({board: boardData});
+        }
+        return;
     }
 
     const board = data.board;
@@ -169,18 +183,15 @@ function App() {
 
       // Heartbeat stage 2 received - process ping data
       if (heartbeat.stage === 2) {
-        setPings(currentPings => {
-          //console.log("Heartbeat stage 2 received from " + heartbeat.playerKey);
-          if(!heartbeat.bounced || !heartbeat.sent) {
-            console.log(`Warning: Heartbeat received but bounced (${heartbeat.bounced}) or sent time (${heartbeat.sent}) is missing.`);
-            return currentPings;
-          }
-          const pingReply: PingReply = {playerKey: heartbeat.playerKey, sent: heartbeat.sent, bounced: heartbeat.bounced};
-          const incorporatedPing = IncorporatePing(currentPings, pingReply);
-          console.log("Incorporated ping:", incorporatedPing);
-          return incorporatedPing;
-        })
-      }  
+        //console.log("Heartbeat stage 2 received from " + heartbeat.playerKey);
+        if(!heartbeat.bounced || !heartbeat.sent) {
+          console.log(`Warning: Heartbeat received but bounced (${heartbeat.bounced}) or sent time (${heartbeat.sent}) is missing.`);
+          return;
+        }
+        const pingReply: PingReply = {playerKey: heartbeat.playerKey, sent: heartbeat.sent, bounced: heartbeat.bounced};
+        dispatch(addPingReply(pingReply));
+        //console.log("Ping reply dispatched:", pingReply);
+      }
     }
 
     const event = data.event
@@ -231,17 +242,18 @@ function App() {
     const competitorPlaceholder = {name: null, playerKey: null, peerId: conn.peer, peer: null, conn: conn, activeConn: false, active: false};
     setCompetitors(oldCompetitors => { return [...oldCompetitors, competitorPlaceholder] });
 
-    conn.send({board: boardData});
+    // Don't send board data automatically
+    // conn.send({board: boardData});
 
   }, [ProcessMessage]);
 
 
-  // Set peer connection event. Will send current board data right away, then listen for updates.
+  // Set peer connection event. Listen for updates.
   useEffect(() => {
     const peer = myData.peer;
     if(peer) {
       peer.removeAllListeners("connection");
-      peer.on('connection', PeerConnected);  
+      peer.on('connection', PeerConnected);
     }
   }, [myData.peer, PeerConnected]);
 

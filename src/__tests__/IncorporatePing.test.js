@@ -1,4 +1,4 @@
-import IncorporatePing from '../utils/IncorporatePing.js';
+import { IncorporatePing } from "../utils/pings";
 
 describe('IncorporatePing', () => {
   test('records sent pings', () => {

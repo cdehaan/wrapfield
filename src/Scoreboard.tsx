@@ -1,9 +1,13 @@
 import React, { useState } from "react";
 import type {Board, Cell, Player} from './types.ts'
 
+import { useAppSelector } from './store/hooks'
 import GetCookie from "./utils/GetCookie.ts";
+import { calculateAveragePing } from "./utils/pings.ts";
 
 function Scoreboard({ boardData, myData, competitors, setMyData}: { boardData:Board, myData:Player, competitors:Player[], setMyData:React.Dispatch<React.SetStateAction<Player>> }) {
+    const pings = useAppSelector(state => state.timing.pings)
+  
     const scoreboard = [];
 
     const [hotUsername, setHotUsername] = useState<string>(GetCookie("playerName") || "Anonymous");
@@ -56,7 +60,11 @@ function Scoreboard({ boardData, myData, competitors, setMyData}: { boardData:Bo
             return cellsSum + ((cell.owner !== null && playerData.playerKey !== null && cell.owner.includes(playerData.playerKey) && (cell.state === 'f' || cell.state === 'd')) ? 1 : 0);
           }, 0);
         }, 0);
-        return <div key={`${playerData.playerKey}`} data-playerkey={playerData.playerKey} className='ScoreboardRow'><div className={`ScoreboardColor ${myRow ? 'MyColor' : 'CompetitorColor'}`}></div><div className='ScoreboardConnected'>{playerData.active ? "✓" : <img src='spinner.svg' className='ScoreboardImage' alt='⌛'/>}</div><div className='ScoreboardEmoji'><span role="img" aria-label="sushi">🍣</span></div><div className={`${myRow ? '' : 'ScoreboardName'}`}>{myRow ? <input type='text' className='ScoreboardTextbox' value={hotUsername} onChange={HandleNameChange}/> : playerData.name}</div><div className='ScoreboardScore'>{playerData.playerKey === null ? 0 : CalculateScore(playerData.playerKey)}</div><div className='ScoreboardFlags'>{flagCount}</div></div>
+
+        // Calculate the average ping if this isn't my row, and I have a player key for the competitor
+        const averagePing = (!myRow && playerData.playerKey) ? calculateAveragePing(pings, playerData.playerKey) : null;
+
+        return <div key={`${playerData.playerKey}`} data-playerkey={playerData.playerKey} className='ScoreboardRow'><div className={`ScoreboardColor ${myRow ? 'MyColor' : 'CompetitorColor'}`}></div><div className='ScoreboardConnected'>{playerData.active ? "✓" : <img src='spinner.svg' className='ScoreboardImage' alt='⌛'/>}</div><div className='ScoreboardEmoji'><span role="img" aria-label="sushi">🍣</span></div><div className={`${myRow ? '' : 'ScoreboardName'}`}>{myRow ? <input type='text' className='ScoreboardTextbox' value={hotUsername} onChange={HandleNameChange}/> : `${playerData.name}${averagePing ? ` (${averagePing})` : ''}`}</div><div className='ScoreboardScore'>{playerData.playerKey === null ? 0 : CalculateScore(playerData.playerKey)}</div><div className='ScoreboardFlags'>{flagCount}</div></div>
       }
   
       const scoreboardHeader = <div key='scoreboardHeader' className='ScoreboardRow'><div className='ScoreboardColor'></div><div className='ScoreboardConnected'><img src='wifi.png' className='ScoreboardImage' alt='📶'/></div><div className='ScoreboardEmoji'></div><div className='ScoreboardName'></div><div className='ScoreboardScore'><span role="img" aria-label="dice">🎲</span></div><div className='ScoreboardFlags'><span role="img" aria-label="flag">🚩</span></div></div>

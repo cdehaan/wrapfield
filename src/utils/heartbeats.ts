@@ -3,15 +3,14 @@ import { Player, Heartbeat, Ping, PingReply } from '../types';
 type setupHeartbeatsParams = {
   competitors: Player[],
   myPlayerKey: number,
-  setPings: (updater: (currentPings: Ping[]) => Ping[]) => void,
-  IncorporatePing: (currentPings: Ping[], newPing: number | PingReply) => Ping[]
+  dispatchNewPing: (playerKey: number) => void
 }
 
 /**
  * Sets up heartbeat intervals for all competitors
  * Returns a cleanup function to clear all intervals
  */
-export function setupHeartbeats({ competitors, myPlayerKey, setPings, IncorporatePing }: setupHeartbeatsParams): () => void {
+export function setupHeartbeats({ competitors, myPlayerKey, dispatchNewPing }: setupHeartbeatsParams): () => void {
   const heartbeatIntervals: ReturnType<typeof setInterval>[] = [];
 
   competitors.forEach((competitor, index) => {
@@ -30,10 +29,9 @@ export function setupHeartbeats({ competitors, myPlayerKey, setPings, Incorporat
         });
 
         // Make a record of when we sent it to calculate ping later
-        setPings(currentPings => {
-          if(competitor.playerKey === null) { return currentPings; }
-          return IncorporatePing(currentPings, competitor.playerKey);
-        });
+        if(competitor.playerKey !== null) {
+          dispatchNewPing(competitor.playerKey);
+        }
 
       }, index * 100); // Stagger the heartbeats a little
     }, 3000);

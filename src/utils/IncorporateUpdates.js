@@ -18,7 +18,7 @@
         const updateOwner  = cellUpdate.owner;
         const updateScored = !!cellUpdate.scored;
 
-        const currentOwner = (existingOwners && existingOwners.includes(updateOwner));
+        const isCurrentOwner = (existingOwners && existingOwners.includes(updateOwner));
 
         // These states can never interact
         if(['m', 'e', 'f'].includes(existingState) && ['s', 'c', 'd'].includes(updateState)) { return; }
@@ -36,7 +36,7 @@
                 break;
                 case 'd':
                 // Can't remove a dud unless it's owned by the updater
-                if(!currentOwner) { return; }
+                if(!isCurrentOwner) { return; }
 
                 // Someone else also placed a dud, remove updater ownership from the dud
                 if(existingOwners.length > 1) {
@@ -117,7 +117,7 @@
                 break;
                 case 'f':
                 // Can't remove a flag unless it's updater's
-                if(!currentOwner) { return; }
+                if(!isCurrentOwner) { return; }
 
                 // Someone else also placed a flag, remove updater's ownership from the flag
                 if(existingOwners.length > 1) {
@@ -195,9 +195,9 @@
 
 
     const remainingSafe = !newBoardData.cells ? null : newBoardData.cells.reduce((rowsSum, row) => {
-    return rowsSum + row.reduce((cellsSum, cell) => {
-        return cellsSum + ((cell.state === 's') ? 1 : 0) + ((cell.state === 'd') ? 1 : 0);
-    }, 0);
+        return rowsSum + row.reduce((cellsSum, cell) => {
+            return cellsSum + ((cell.state === 's') ? 1 : 0) + ((cell.state === 'd') ? 1 : 0);
+        }, 0);
     }, 0);
     
     if(remainingSafe === 0 && !oldBoardData.end) { newBoardData.end = new Date(); }

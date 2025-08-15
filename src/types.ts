@@ -103,6 +103,7 @@ export type Message = null | string | {
     competitor?:Player,
     updates?: any,
     board?: Board,
+    requestBoard?: boolean,
     heartbeat: Heartbeat,
     event: {type: string}
 }

@@ -50,11 +50,10 @@ function JoinBoard({ active, myData, setMyData, setBoardData, setCompetitors}: {
         }
 
         joinBoardResponse.board.cells = JSON.parse(joinBoardResponse.board.cells)
-        joinBoardResponse.board.active = true
-        console.log(joinBoardResponse)
+        joinBoardResponse.board.active = true;
+        console.log(joinBoardResponse);
 
         setBoardData(joinBoardResponse.board);
-
         setMyData(existingPlayerData => { return {...existingPlayerData, ...joinBoardResponse.player}; });
 
         // Exclude myself from the list of competitors
@@ -62,6 +61,9 @@ function JoinBoard({ active, myData, setMyData, setBoardData, setCompetitors}: {
         newCompetitors.forEach((competitor:Player) => {
             competitor.activeConn = false;
             competitor.conn = myData.peer.connect(competitor.peerId);
+            competitor.conn.on('open', () => {
+                competitor.conn.send({requestBoard: true});
+            });
         });
         setCompetitors(newCompetitors);
 
