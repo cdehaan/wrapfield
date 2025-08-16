@@ -1,4 +1,4 @@
-const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:8080';
+const API_BASE = process.env.REACT_APP_API_BASE || 'https://api.wrapfield.com';
 
 async function SendData(endpoint, data) {
     const url = /^https?:\/\//i.test(endpoint) ? endpoint : `${API_BASE.replace(/\/$/, '')}/${endpoint.replace(/^\//, '')}`;

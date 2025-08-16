@@ -62,13 +62,23 @@ export function SaveEgressPing(connections: ConnectionHistory, {playerKey, sent}
   let playerConnection = connections.find(conn => conn.playerKey === playerKey);
   // If no connection exists for this player, create one
   if (!playerConnection) {
-    console.log("No connection found for player:", playerKey, ", creating a new one.");
+    console.log("No connection data object found for player:", playerKey, ", creating a new one.");
     playerConnection = { playerKey, totalPings: 0, droppedPings: 0, pings: [] };
     connections.push(playerConnection);
   }
 
   // All this players pings (answered and unanswered)
   const playerPings = playerConnection.pings;
+
+  // Check for hanging pings (pings that were sent but never received)
+  const hangingPings = playerPings.filter(ping => ping.received === undefined);
+  if (hangingPings.length > 0) {
+    console.log(`Found ${hangingPings.length} hanging ping(s) for player ${playerKey}, removing them and incrementing dropped count`);
+    // Remove hanging pings from the array
+    playerConnection.pings = playerPings.filter(ping => ping.received !== undefined);
+    // Increment dropped pings counter
+    playerConnection.droppedPings += hangingPings.length;
+  }
 
   // Record the player key and send time
   const newEntry: Ping = { sent };
