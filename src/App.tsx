@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Peer from 'peerjs';
 
-import {Board, Player, Heartbeat, Message, InitialBoard, InitialPlayer, Ping, PingReply} from './types.ts'
+import {Board, Player, Heartbeat, Message, InitialBoard, InitialPlayer, PingReply} from './types.ts'
 
 import './index.css';
 import BoardScreen from './BoardScreen';
@@ -51,12 +51,10 @@ function App() {
     }
   }, []);
 
-  // New function to refresh backend connection data
+  // refresh backend connection data
   const refreshBackendConnection = useCallback(async (newPeerId: string) => {
-    console.log('Refreshing backend connection with new Peer ID:', newPeerId);
-    return;
     try {
-      const response = await fetch('/api/refresh-connection', {
+      const response = await fetch('/refreshConnection', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -73,7 +71,12 @@ function App() {
       }
 
       const data = await response.json();
-      return data.connectedPeers || []; // Assume backend returns list of other players' peer IDs
+      if (data.error) {
+        throw new Error(data.error);
+      }
+      
+      // Return array of peer IDs for reconnection
+      return data.connectedPlayers?.map((player: Player) => player.peerId) || [];
     } catch (error) {
       console.error('Error refreshing backend connection:', error);
       return [];
