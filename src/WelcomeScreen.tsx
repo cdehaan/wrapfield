@@ -19,7 +19,7 @@ function WelcomeScreen({ boardData, myData, competitors, setMyData, setBoardData
             <Scoreboard boardData={boardData} competitors={competitors} myData={myData} setMyData={setMyData}/>
             <CreateBoard active={boardData.active} myData={myData} setBoardData={setBoardData} setMyData={setMyData} />
             <JoinBoard   active={boardData.active} myData={myData} setBoardData={setBoardData} setMyData={setMyData} setCompetitors={setCompetitors} />
-            <span className='footer'>By Chris DeHaan</span>
+            <span className='footer'><a href="https://github.com/cdehaan/wrapfield" style={{ color: '#369' }}>By Chris DeHaan</a></span>
           </div>
         </>
       )
