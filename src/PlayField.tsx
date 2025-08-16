@@ -121,6 +121,13 @@ function PlayField(props: { boardData: Board; competitors: Player[]; myData: Pla
     BroadcastUpdates(localUpdates);
   }
 
+  function handleMouseDown(event: React.MouseEvent) {
+    // Both left and right pressed
+    if (event.buttons === 3) {
+        TileDoubleClick(event);
+    }
+  }
+
   function TileDoubleClick(event: React.MouseEvent) {
     if(!boardData.cells) { return; }
 
@@ -294,7 +301,7 @@ function PlayField(props: { boardData: Board; competitors: Player[]; myData: Pla
           const tileText = (cellState === "d" || cellState === "f") ? "🚩" : (cellState === "m" || cellState === "e") ? "💣" : boardData.cells[y][x].neighbours > 0 ? boardData.cells[y][x].neighbours : isSafe ? "◎" : "";
           const stateClassName = isSafe ? "Safe" : cellOwner === null ? "Unknown" : (cellState === "d" || cellState === "f") ? "Flagged" : cellState === "c" ? "Cleared" : "Exploded";
           const ownerClassName = cellOwner === null ? "" : cellOwner.includes(myData.playerKey) ? "MyTile" : "CompetitorTile";
-          const oneTile = <div key={`x${x}y${y}`} data-x={x} data-y={y}  className={`Cell ${stateClassName} ${ownerClassName}`} onContextMenu={TileContextMenu} onClick={TileClicked} onDoubleClick={TileDoubleClick}>{tileText}</div>
+          const oneTile = <div key={`x${x}y${y}`} data-x={x} data-y={y}  className={`Cell ${stateClassName} ${ownerClassName}`} onContextMenu={TileContextMenu} onClick={TileClicked} onDoubleClick={TileDoubleClick} onMouseDown={handleMouseDown}>{tileText}</div>
           tiles.push(oneTile);
       }
     }
