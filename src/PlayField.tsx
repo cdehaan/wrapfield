@@ -121,14 +121,18 @@ function PlayField(props: { boardData: Board; competitors: Player[]; myData: Pla
     BroadcastUpdates(localUpdates);
   }
 
-  function handleMouseDown(event: React.MouseEvent) {
+  function handleMouseDown(event: React.PointerEvent<HTMLDivElement>) {
     // Both left and right pressed
     if (event.buttons === 3) {
         TileDoubleClick(event);
     }
   }
 
-  function TileDoubleClick(event: React.MouseEvent) {
+  function TileDoubleClick(event: React.PointerEvent<HTMLDivElement>) {
+    if (event.pointerType === "touch") {
+      return; // ignore double-tap on touch devices
+    }
+
     if(!boardData.cells) { return; }
 
     const tile = event.target as HTMLElement;
