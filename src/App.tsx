@@ -12,7 +12,7 @@ import { handleResize } from './utils/handleResize.ts';
 import { returnHeartbeat, setupHeartbeats } from './utils/heartbeats.ts';
 import GetCookie from './utils/GetCookie.ts';
 import { useAppDispatch } from './store/hooks'
-import { addNewPing, addPingReply } from './store/timingSlice'
+import { addNewPing, addPingReply, processPingQueue } from './store/timingSlice'
 
 function App() {
   const dispatch = useAppDispatch()
@@ -98,7 +98,7 @@ function App() {
       return;
     }
     // setupHeartbeats returns its own cleanup function
-    return setupHeartbeats({competitors, myPlayerKey: myData.playerKey, dispatchNewPing: (playerKey: number) => dispatch(addNewPing(playerKey))});
+    return setupHeartbeats({competitors, myPlayerKey: myData.playerKey, dispatchNewPing: (playerKey: number, now: number) => dispatch(addNewPing({playerKey, sent: now}))});
   }, [competitors, myData.playerKey, dispatch]);
 
   // Read message from another player: text, competitor data, quantum board updates, full board data, heartbeat, or event
@@ -160,9 +160,9 @@ function App() {
     // Full board data received
     const board = data.board;
     if(board) {
-      console.log("Entire board data received");
+      //console.log("Entire board data received");
       if(boardData.key) {
-        console.log("Board data received but already exists locally. Ignored.");
+        //console.log("Board data received but already exists locally. Ignored.");
         return;
       }
       setBoardData(oldBoardData => {
@@ -176,7 +176,9 @@ function App() {
     // Heartbeat received
     const heartbeat:Heartbeat = data.heartbeat; // {stage: 1, playerKey: 140}
     if(heartbeat) {
-      if(competitorKey && heartbeat.playerKey !== competitorKey) { console.log(`Warning: Player Key in heartbeat (${heartbeat.playerKey}) and Player key in connection object (${competitorKey}) don't match.`) }
+      if(competitorKey && heartbeat.playerKey !== competitorKey) { 
+        console.log(`Warning: Player Key in heartbeat (${heartbeat.playerKey}) and Player key in connection object (${competitorKey}) don't match.`) 
+      }
       if(myData.playerKey === null) {
         console.log("Warning: Heartbeat received but myData.playerKey is null. This should not happen.");
         return;
@@ -189,17 +191,27 @@ function App() {
 
       // Heartbeat stage 2 received - process ping data
       if (heartbeat.stage === 2) {
-        //console.log("Heartbeat stage 2 received from " + heartbeat.playerKey);
+        console.log("Heartbeat stage 2 received from " + heartbeat.playerKey);
         if(!heartbeat.bounced || !heartbeat.sent) {
           console.log(`Warning: Heartbeat received but bounced (${heartbeat.bounced}) or sent time (${heartbeat.sent}) is missing.`);
           return;
         }
-        const pingReply: PingReply = {playerKey: heartbeat.playerKey, sent: heartbeat.sent, bounced: heartbeat.bounced};
+
+        const pingReply: PingReply = {
+          playerKey: heartbeat.playerKey, 
+          sent: heartbeat.sent, 
+          bounced: heartbeat.bounced
+        };
+
+        // Dispatch the ping reply (will queue if no matching ping found)
         dispatch(addPingReply(pingReply));
-        //console.log("Ping reply dispatched:", pingReply);
+        
+        // Schedule queue processing after 100ms to handle race conditions
+        setTimeout(() => {
+          dispatch(processPingQueue());
+        }, 100);
       }
     }
-
     const event = data.event
     if(event) {
       switch (event.type) {

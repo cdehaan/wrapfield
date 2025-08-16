@@ -1,9 +1,9 @@
-import { Player, Heartbeat, Ping, PingReply } from '../types';
+import { Player, Heartbeat } from '../types';
 
 type setupHeartbeatsParams = {
   competitors: Player[],
   myPlayerKey: number,
-  dispatchNewPing: (playerKey: number) => void
+  dispatchNewPing: (playerKey: number, now: number) => void
 }
 
 /**
@@ -30,9 +30,10 @@ export function setupHeartbeats({ competitors, myPlayerKey, dispatchNewPing }: s
 
         // Make a record of when we sent it to calculate ping later
         if(competitor.playerKey !== null) {
-          dispatchNewPing(competitor.playerKey);
+          dispatchNewPing(competitor.playerKey, now);
+        } else {
+          console.log("No player key found for competitor:", competitor, ", couldn't setup outgoing heartbeat");
         }
-
       }, index * 100); // Stagger the heartbeats a little
     }, 3000);
 

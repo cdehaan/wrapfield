@@ -94,14 +94,6 @@ export const InitialPlayer: Player = {
     active: false,
 };
 
-export type Heartbeat = {
-    stage:number,
-    playerKey:number,
-    sent?: number,
-    bounced?: number,
-    received?: number,
-}
-
 export type Message = null | string | {
     competitor?:Player,
     updates?: any,
@@ -111,10 +103,23 @@ export type Message = null | string | {
     event: {type: string}
 }
 
-// {playerKey: 1, sent: time, bounced: time, ping: time, skew: percent}
-// A ping that has been sent but not answered will only have playerKey and sent
-export type Ping = {
+export type Heartbeat = {
+    stage: number,
     playerKey: number,
+    sent: number,
+    bounced?: number,
+}
+
+export type ConnectionHistory = Array<{
+  playerKey: number;
+  totalPings: number;
+  droppedPings: number;
+  pings: Ping[];
+}>;
+
+// A ping that has been sent but not answered will only have sent
+// playerKey is known from where it is stored in ConnectionHistory
+export type Ping = {
     sent: number,
     bounced?: number,
     received?: number,
@@ -125,4 +130,13 @@ export type PingReply = {
     playerKey: number,
     sent: number,
     bounced: number,
+}
+
+// A ping might come back so quickly that the outgoing ping hasn't been saved in memory
+// In that case, we need to store it temporarily and try again later
+export type HangingPing = {
+    playerKey: number,
+    sent: number,
+    bounced: number,
+    received: number,
 }
